@@ -1,0 +1,394 @@
+# Copyright © University of Trento and DLR 2025.
+# This software is proprietary to the University of Trento and DLR. Use is permitted solely within
+# the Horizon Europe project “INVERSE” (Grant Agreement ID: 101136067).
+# This license does not override any rights or obligations established in the Grant Agreement.
+# Redistribution or use outside the project is prohibited.
+
+entries:
+  convo:
+    ############################################################################
+    ###############################     0     ##################################
+    ############################################################################
+    0: 
+      Q:
+        role: 'user'
+        content: |
+          Consider the following query for the high-level part:
+          "There are 3 blocks on a table. In the initial state of the simulation, block b1 is in 
+          position (1,1), block b2 is in position (2,2), block b3 is in position (3,3). After the 
+          execution of the plan, b1 on the table in position (1,1), b2 is on the table in position 
+          (2,2) and b3 is on top of b1 in position (1,1). There are two available agents that can 
+          carry out the task. They are available at the beginning and will be available at the end."
+          And consider the following general knowledge base provided by the high-level:
+          ```kb
+          % Positions on the table
+          pos(1,1).
+          pos(2,2).
+          pos(3,3).
+
+          % Blocks
+          block(b1).
+          block(b2).
+          block(b3).
+
+          % Agents
+          agent(a1).
+          agent(a2).
+
+          % Resources
+          resources(agent(_)).
+          ```
+          and the following initial and final states:
+          ```init
+          init_state([
+            ontable(b1), ontable(b2), ontable(b3),
+            at(b1,1,1), at(b2,2,2), at(b3,3,3),
+            clear(b1), clear(b2), clear(b3),
+            available(a1), available(a2)
+          ]).
+          ```
+          ```goal
+          goal_state([
+            ontable(b1), ontable(b2), on(b3, b1),
+            at(b1,1,1), at(b2,2,2), at(b3,1,1),
+            clear(b2), clear(b3),
+            available(a1), available(a2)
+          ]).
+          ```
+          Now, consider the following query for the low-level part:
+          "There are 3 blocks on a table. In the initial state of the simulation, block b1 is in 
+          position (1,1), block b2 is in position (2,2), block b3 is in position (3,3). After the 
+          execution of the plan, b1 on the table in position (1,1), b2 is on the table in position
+          (2,2) and b3 is on top of b1 in position (1,1). There are 2 agents with a robotic arm that
+          are available at the beginning and will be available at the end, which can be used to pick
+          objects. Their initial position is (0,0) for agent a1 and (10,10) for agent a2. We do not
+          care about their position in the final state. The end-effector, which is a gripper of the
+          arms are open at the beginning, but we do not care about their state at the end."
+          Please update the high-level initial and final states to reflect the changes in the 
+          description for the low-level.
+          Remember to prepend the low-level predicates with "ll_" to avoid conflicts with the 
+          high-level predicates.s
+
+      A:
+        role: 'assistant'
+        content: |
+          Sure. The initial and goal states provided in the high-level are updated as follows:
+          ```init
+          init_state([
+            ontable(b1), ontable(b2), ontable(b3),
+            at(b1,1,1), at(b2,2,2), at(b3,3,3),
+            clear(b1), clear(b2), clear(b3),
+            available(a1), available(a2),
+            ll_arm_at(a1,0,0), ll_arm_at(a2,10,10),
+            ll_gripper(a1,open), ll_gripper(a2,open)
+          ]).
+          ```
+          ```goal
+          goal_state([
+            ontable(b1), ontable(b2), on(b3, b1),
+            at(b1,1,1), at(b2,2,2), at(b3,1,1),
+            clear(b2), clear(b3),
+            available(a1), available(a2),
+            ll_arm_at(a1,_,_), ll_arm_at(a2,_,_),
+            ll_gripper(a1,_), ll_gripper(a2,_)
+          ]).
+          ```
+          Indeed, the only difference is the information regarding the position of the agent with
+          the robotic arm at the beginning and at the end. In particular, we introduce a new
+          predicate, `ll_arm_at/3`, to represent the position of the agent with the robotic arm.
+          Since the description says that we do not care about the position of the arms at the end,
+          we use the wildcard `_` to represent any value for the position of the arms in the goal.
+
+
+    ############################################################################
+    ###############################     1     ##################################
+    ############################################################################
+    1: 
+      Q:
+        role: 'user'
+        content: |
+          Consider the following query for the high-level part:
+          "There are 3 blocks on a table. In the initial state of the simulation, block b1 is in 
+          position (1,1), block b2 is in position (2,2), block b3 is in position (3,3). After the 
+          execution of the plan, b1 on the table in position (1,1), b2 is on the table in position 
+          (2,2) and b3 is on top of b1 in position (1,1). There are two available agents that can 
+          carry out the task. They are available at the beginning and will be available at the end."
+          And consider the following general knowledge base provided by the high-level:
+          ```kb
+          % Positions on the table
+          pos(1,1).
+          pos(2,2).
+          pos(3,3).
+
+          % Blocks
+          block(b1).
+          block(b2).
+          block(b3).
+
+          % Agents
+          agent(a1).
+          agent(a2).
+
+          % Resources
+          resources(agent(_)).
+          ```
+          and the following initial and final states:
+          ```init
+          init_state([
+            ontable(b1), ontable(b2), ontable(b3),
+            at(b1,1,1), at(b2,2,2), at(b3,3,3),
+            clear(b1), clear(b2), clear(b3),
+            available(a1), available(a2)
+          ]).
+          ```
+          ```goal
+          goal_state([
+            ontable(b1), ontable(b2), on(b3, b1),
+            at(b1,1,1), at(b2,2,2), at(b3,1,1),
+            clear(b2), clear(b3),
+            available(a1), available(a2)
+          ]).
+          ```
+          Now, consider the following query for the low-level part:
+          "There are 3 blocks on a table. In the initial state of the simulation, block b1 is in 
+          position (1,1), block b2 is in position (2,2), block b3 is in position (3,3). After the 
+          execution of the plan, b1 on the table in position (1,1), b2 is on the table in position
+          (2,2) and b3 is on top of b1 in position (1,1). There are 2 agents with a robotic arm that
+          are available at the beginning and will be available at the end, which can be used to pick
+          objects. Their initial position is (0,0) for agent a1 and (10,10) for agent a2. We do not
+          care about their position in the final state. The end-effector, which is a gripper of the
+          arms are open at the beginning, but we do not care about their state at the end."
+          Please update the high-level initial and final states to reflect the changes in the 
+          description for the low-level.
+          Remember to prepend the low-level predicates with "ll_" to avoid conflicts with the 
+          high-level predicates.s
+
+      A:
+        role: 'assistant'
+        content: |
+          Sure. The initial and goal states provided in the high-level are updated as follows:
+          ```init
+          init_state([
+            ontable(b1), ontable(b2), ontable(b3),
+            at(b1,1,1), at(b2,2,2), at(b3,3,3),
+            clear(b1), clear(b2), clear(b3),
+            available(a1), available(a2),
+            ll_arm_at(a1,0,0), ll_arm_at(a2,10,10),
+            ll_gripper(a1,open), ll_gripper(a2,open)
+          ]).
+          ```
+          ```goal
+          goal_state([
+            ontable(b1), ontable(b2), on(b3, b1),
+            at(b1,1,1), at(b2,2,2), at(b3,1,1),
+            clear(b2), clear(b3),
+            available(a1), available(a2),
+            ll_arm_at(a1,_,_), ll_arm_at(a2,_,_),
+            ll_gripper(a1,_), ll_gripper(a2,_)
+          ]).
+          ```
+          Indeed, the only difference is the information regarding the position of the agent with
+          the robotic arm at the beginning and at the end. In particular, we introduce a new
+          predicate, `ll_arm_at/3`, to represent the position of the agent with the robotic arm.
+          Since the description says that we do not care about the position of the arms at the end,
+          we use the wildcard `_` to represent any value for the position of the arms in the goal.
+
+
+    ############################################################################
+    ###############################     2     ##################################
+    ############################################################################
+    2: 
+      Q:
+        role: 'user'
+        content: |
+          Consider the following query for the high-level part:
+          "There are 3 blocks on a table. In the initial state of the simulation, block b1 is in 
+          position (1,1), block b2 is in position (2,2), block b3 is in position (3,3). After the 
+          execution of the plan, b1 on the table in position (1,1), b2 is on the table in position 
+          (2,2) and b3 is on top of b1 in position (1,1). There are two available agents that can 
+          carry out the task. They are available at the beginning and will be available at the end."
+          And consider the following general knowledge base provided by the high-level:
+          ```kb
+          % Positions on the table
+          pos(1,1).
+          pos(2,2).
+          pos(3,3).
+
+          % Blocks
+          block(b1).
+          block(b2).
+          block(b3).
+
+          % Agents
+          agent(a1).
+          agent(a2).
+
+          % Resources
+          resources(agent(_)).
+          ```
+          and the following initial and final states:
+          ```init
+          init_state([
+            ontable(b1), ontable(b2), ontable(b3),
+            at(b1,1,1), at(b2,2,2), at(b3,3,3),
+            clear(b1), clear(b2), clear(b3),
+            available(a1), available(a2)
+          ]).
+          ```
+          ```goal
+          goal_state([
+            ontable(b1), ontable(b2), on(b3, b1),
+            at(b1,1,1), at(b2,2,2), at(b3,1,1),
+            clear(b2), clear(b3),
+            available(a1), available(a2)
+          ]).
+          ```
+          Now, consider the following query for the low-level part:
+          "There are 3 blocks on a table. In the initial state of the simulation, block b1 is in 
+          position (1,1), block b2 is in position (2,2), block b3 is in position (3,3). After the 
+          execution of the plan, b1 on the table in position (1,1), b2 is on the table in position
+          (2,2) and b3 is on top of b1 in position (1,1). There are 2 agents with a robotic arm that
+          are available at the beginning and will be available at the end, which can be used to pick
+          objects. Their initial position is (0,0) for agent a1 and (10,10) for agent a2. We do not
+          care about their position in the final state. The end-effector, which is a gripper of the
+          arms are open at the beginning, but we do not care about their state at the end."
+          Please update the high-level initial and final states to reflect the changes in the 
+          description for the low-level.
+          Remember to prepend the low-level predicates with "ll_" to avoid conflicts with the 
+          high-level predicates.s
+
+      A:
+        role: 'assistant'
+        content: |
+          Sure. The initial and goal states provided in the high-level are updated as follows:
+          ```init
+          init_state([
+            ontable(b1), ontable(b2), ontable(b3),
+            at(b1,1,1), at(b2,2,2), at(b3,3,3),
+            clear(b1), clear(b2), clear(b3),
+            available(a1), available(a2),
+            ll_arm_at(a1,0,0), ll_arm_at(a2,10,10),
+            ll_gripper(a1,open), ll_gripper(a2,open)
+          ]).
+          ```
+          ```goal
+          goal_state([
+            ontable(b1), ontable(b2), on(b3, b1),
+            at(b1,1,1), at(b2,2,2), at(b3,1,1),
+            clear(b2), clear(b3),
+            available(a1), available(a2),
+            ll_arm_at(a1,_,_), ll_arm_at(a2,_,_),
+            ll_gripper(a1,_), ll_gripper(a2,_)
+          ]).
+          ```
+          Indeed, the only difference is the information regarding the position of the agent with
+          the robotic arm at the beginning and at the end. In particular, we introduce a new
+          predicate, `ll_arm_at/3`, to represent the position of the agent with the robotic arm.
+          Since the description says that we do not care about the position of the arms at the end,
+          we use the wildcard `_` to represent any value for the position of the arms in the goal.
+
+    ############################################################################
+    ###############################     3     ##################################
+    ############################################################################
+    3: 
+      Q:
+        role: 'user'
+        content: |
+          Given the high-level knowledge-base obtained from the low-level description:
+          ```kb
+          % Positions
+          pos(32,60).
+          pos(113,83).
+          pos(44,40).
+          pos(86,52).
+          pos(72,52).
+          pos(79,52).
+          pos(4,4).
+          pos(5,5).
+
+          % Blocks
+          block(b1).
+          block(b2).
+          block(b3).
+          architrave(b3).
+
+          % Agents
+          agent(a1).
+          agent(a2).
+
+          % Low-level predicates for arms and grippers
+          ll_arm(a1).
+          ll_arm(a2).
+
+          ll_gripper(a1).
+          ll_gripper(a2).
+
+          % Resources
+          resources(agent(_)).
+          resources(ll_arm(_)).
+          resources(ll_gripper(_)).
+          ```
+
+          Given the initial and final states generated from the high-level description:
+          ```init
+          init_state([
+            ontable(b1), ontable(b2), ontable(b3),
+            at(b1,32,60), at(b2,113,83), at(b3,44,40),
+            clear(b1), clear(b2), clear(b3),
+            available(arm1), available(arm2)
+          ]).
+          ```
+
+          ```goal
+          goal_state([
+            ontable(b1), ontable(b2),
+            on(b3, b1), on(b3, b2),
+            at(b1,86,52), at(b2,72,52), at(b3,79,52),
+            clear(b3),
+            available(arm1), available(arm2)
+          ]).
+          ```
+
+
+          Consider the following description of the low-level aspect of the same problem. 
+          
+          Let the blocks be in the same position as the high-level description. 
+          The agents are robotics arm equipped with a gripper. At the beginning, the end-effector of the 
+          agents are in position (4,4) and (5,5) for agents a1, a2, respectively. Each agent has the following 
+          APIs:
+          - move_arm(Agent, x, y, z), which moves the end-effector to a position (x, y, z).
+          - close_gripper(Agent), which closes the gripper.
+          - open_gripper(Agent), which opens the gripper.
+          Remember that, while the blocks have to be left on the table, the architrave has to be placed higher.
+          Remember to use the appropriate tags for the code you produce and not to use prolog tags.
+
+          Can you update the initial and final states from the previous knowledge base to reflect these changes?
+
+      A:
+        role: 'assistant'
+        content: |
+          Sure. We need to integrate the position of the arm and the state of the gripper. We start with an open gripper 
+          and from the two initial positions that were given.
+          ```init
+          init_state([
+            ontable(b1), ontable(b2), ontable(b3),
+            at(b1,32,60), at(b2,113,83), at(b3,44,40),
+            clear(b1), clear(b2), clear(b3),
+            available(a1), available(a2),
+            ll_arm_at(a1,4,4,_), ll_arm_at(a2,5,5,_),
+            ll_gripper(a1,open), ll_gripper(a2,open)
+          ]).
+          ```
+
+          We don't care about the final position of the arms. So the final state would be:
+          ```goal
+          goal_state([
+            ontable(b1), ontable(b2),
+            on(b3, b1), on(b3, b2),
+            at(b1,86,52), at(b2,72,52), at(b3,79,52),
+            clear(b3),
+            available(a1), available(a2),
+            ll_arm_at(a1,_,_,_), ll_arm_at(a2,_,_,_),
+            ll_gripper(a1,_), ll_gripper(a2,_)
+          ]).
+          ```

@@ -1,0 +1,1 @@
+# No Python dependencies. Sigma.js and Graphology load via CDN in the HTML.

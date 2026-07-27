@@ -1,0 +1,950 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{page_title}</title>
+  <style>
+{inline_css}
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div id="toolbar">
+      <div class="title">{page_title}</div>
+      <div class="search">
+        <input id="searchInput" type="text" placeholder="Search by key, label, or state..." />
+        <button id="searchClear" class="secondary">Clear</button>
+        <button id="fitBtn">Fit</button>
+        <button id="layoutBtn" class="secondary">Auto layout</button>
+        <label>
+          <input id="toggleLabels" type="checkbox" />
+          Labels
+        </label>
+        <label>
+          <input id="toggleEdgeLabels" type="checkbox" />
+          Edge labels
+        </label>
+      </div>
+    </div>
+    <div id="content">
+      <aside id="planPanel">
+        <div class="section">
+          <div class="section-title" id="planPanelTitle">Optimal plan</div>
+          <div id="planPanelBody">{plan_list_html}</div>
+        </div>
+      </aside>
+      <div id="planResizeHandle" aria-label="Resize plan panel"></div>
+      <div id="cy"></div>
+      <div id="hoverTooltip"></div>
+      <div id="resizeHandle" aria-label="Resize sidebar"></div>
+      <aside id="sidebar">
+        <div class="section">
+          <div class="section-title">Selection</div>
+          <div id="hoverInfo">Click a node or edge to see details.</div>
+        </div>
+        <div class="section">
+          <div class="section-title">Search</div>
+          <div class="hint">Matches highlight nodes and edges. Press Enter to zoom to matches.</div>
+          <div id="searchStats">Type to search by key, label, or state.</div>
+        </div>
+        <div class="section">
+          <div class="section-title">Applicability Debugger</div>
+          <div class="debug-controls">
+            <label for="debugStateSelect">State</label>
+            <select id="debugStateSelect"></select>
+            <label for="debugActionSelect">hl_d_action</label>
+            <select id="debugActionSelect"></select>
+            <label for="debugActionManual">Manual action (optional)</label>
+            <input id="debugActionManual" type="text" placeholder="e.g. robot_move(r1,c1,location1,location2)" />
+            <label for="debugPhaseSelect">Phase</label>
+            <select id="debugPhaseSelect">
+              <option value="start">start</option>
+              <option value="end">end</option>
+            </select>
+            <button id="debugExplainBtn" type="button">Explain applicability</button>
+            <div id="debugResult">Select a state/action and click "Explain applicability".</div>
+          </div>
+        </div>
+        <div class="section">
+          <div class="section-title">Stats</div>
+          <div class="stats">
+            Nodes: {stats_nodes}<br>
+            Edges shown: {stats_edges_visible}<br>
+            Edges logged: {stats_edges_total}<br>
+            Synthetic goal links: {stats_edges_virtual}
+          </div>
+        </div>
+        {node_legend_html}
+        {edge_legend_html}
+        <div class="section">
+          <div class="section-title">Tips</div>
+          <div class="hint">Drag nodes to reposition. Auto layout uses a force layout and keeps your changes.</div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script src="{cytoscape_src}"></script>
+  <script>
+    const elements = {elements_json};
+    const debugPayload = {debug_payload_json};
+    const outcomeColors = {outcomes_json};
+    const showLabelsDefault = {show_labels_js};
+    const prologServiceUrl = {prolog_service_url_json};
+
+    if (!window.cytoscape) {{
+      const sidebar = document.getElementById('sidebar');
+      sidebar.innerHTML = '<div class="section"><div class="section-title">Error</div><div class="hint">Cytoscape.js failed to load. Check the --cytoscape-js path or CDN access.</div></div>';
+    }} else {{
+      const cy = cytoscape({{
+        container: document.getElementById('cy'),
+        elements: elements,
+        layout: {{ name: 'preset' }},
+        wheelSensitivity: 0.2,
+        style: [
+          {{
+            selector: 'node',
+            style: {{
+              'background-color': '{node_color_node}',
+              'label': 'data(label)',
+              'text-valign': 'top',
+              'text-halign': 'center',
+              'text-margin-y': -8,
+              'text-wrap': 'ellipsis',
+              'text-max-width': 180,
+              'font-size': 10,
+              'color': '#1b1b1b',
+              'text-outline-color': '#f5efe6',
+              'text-outline-width': 2,
+              'width': 30,
+              'height': 30,
+              'border-width': 1.4,
+              'border-color': '#202a34'
+            }}
+          }},
+          {{ selector: 'node.init', style: {{ 'background-color': '{node_color_init}' }} }},
+          {{ selector: 'node.goal', style: {{ 'background-color': '{node_color_goal}' }} }},
+          {{ selector: 'node.goal_reached', style: {{ 'background-color': '{node_color_goal_reached}' }} }},
+          {{ selector: 'node.label-hidden', style: {{ 'text-opacity': 0 }} }},
+          {{
+            selector: 'edge',
+            style: {{
+              'curve-style': 'bezier',
+              'target-arrow-shape': 'triangle',
+              'arrow-scale': 0.75,
+              'line-color': '#9aa0a6',
+              'target-arrow-color': '#9aa0a6',
+              'width': 1.5,
+              'opacity': 0.85,
+              'label': 'data(step)',
+              'font-size': 8,
+              'text-rotation': 'autorotate',
+              'text-background-color': '#fff8ee',
+              'text-background-opacity': 0.85,
+              'text-background-padding': 2,
+              'text-margin-y': -6,
+              'color': '#1b1b1b'
+            }}
+          }},
+          {{
+            selector: 'edge.synthetic-goal-link',
+            style: {{
+              'line-style': 'dashed',
+              'width': 2.4,
+              'font-size': 11,
+              'font-weight': 700,
+              'text-background-opacity': 1
+            }}
+          }},
+          {{ selector: 'edge.synthetic-goal-link.edge-label-hidden', style: {{ 'text-opacity': 1 }} }},
+          {{ selector: '.search-dim', style: {{ 'opacity': 0.2 }} }},
+          {{ selector: 'node.search-hit', style: {{ 'border-width': 3.6, 'border-color': '#1b1b1b', 'opacity': 1 }} }},
+          {{ selector: 'node.debug-selected', style: {{ 'border-width': 4.0, 'border-color': '#b23a48', 'opacity': 1 }} }},
+          {{ selector: 'edge.search-hit', style: {{ 'line-width': 3.0, 'opacity': 1 }} }},
+          {{ selector: 'edge.edge-label-hidden', style: {{ 'text-opacity': 0 }} }}
+        ]
+      }});
+
+      Object.keys(outcomeColors).forEach((outcome) => {{
+        const color = outcomeColors[outcome];
+        cy.style().selector(`edge[outcome = "${{outcome}}"]`).style({{
+          'line-color': color,
+          'target-arrow-color': color
+        }});
+      }});
+      cy.style().update();
+
+      const hoverInfo = document.getElementById('hoverInfo');
+      const hoverDefault = hoverInfo.innerHTML;
+      const hoverTooltip = document.getElementById('hoverTooltip');
+      const planPanelTitle = document.getElementById('planPanelTitle');
+      const planPanelBody = document.getElementById('planPanelBody');
+      const defaultPlanTitle = planPanelTitle ? planPanelTitle.textContent : '';
+      const defaultPlanBody = planPanelBody ? planPanelBody.innerHTML : '';
+
+      const setHover = (html) => {{
+        hoverInfo.innerHTML = html || hoverDefault;
+      }};
+
+      const escapeHtmlClient = (value) => {{
+        if (value === null || value === undefined) {{
+          return '';
+        }}
+        return String(value)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }};
+
+      const renderPlanForNode = (nodeId) => {{
+        if (!planPanelTitle || !planPanelBody) {{
+          return;
+        }}
+        const target = cy.getElementById(nodeId);
+        if (!target || !target.length) {{
+          planPanelTitle.textContent = defaultPlanTitle;
+          planPanelBody.innerHTML = defaultPlanBody;
+          return;
+        }}
+
+        const initNodes = cy.nodes('.init');
+        if (!initNodes.length) {{
+          planPanelTitle.textContent = `Shortest path to ${{target.data('label') || nodeId}}`;
+          planPanelBody.innerHTML = '<div class="plan-empty">No init node found in graph.</div>';
+          return;
+        }}
+
+        let bestDist = Infinity;
+        let bestPath = null;
+        let bestRoot = null;
+        initNodes.forEach((rootNode) => {{
+          const dijkstra = cy.elements().dijkstra(rootNode, () => 1, true);
+          const dist = dijkstra.distanceTo(target);
+          if (!Number.isFinite(dist)) {{
+            return;
+          }}
+          if (dist < bestDist) {{
+            bestDist = dist;
+            bestPath = dijkstra.pathTo(target);
+            bestRoot = rootNode;
+          }}
+        }});
+
+        planPanelTitle.textContent = `Shortest path to ${{target.data('label') || nodeId}}`;
+        if (!bestPath || !Number.isFinite(bestDist)) {{
+          planPanelBody.innerHTML = '<div class="plan-empty">Target is unreachable from all init states.</div>';
+          return;
+        }}
+
+        const edgeSteps = [];
+        bestPath.filter('edge').forEach((edge) => {{
+          edgeSteps.push(edge.data('step') || edge.id());
+        }});
+
+        if (!edgeSteps.length) {{
+          planPanelBody.innerHTML =
+            '<div class="plan-empty">State is an init state (0 steps).</div>';
+          return;
+        }}
+
+        const rootLabel = bestRoot ? (bestRoot.data('label') || bestRoot.id()) : '';
+        const header = `<div class="hint">From init ${{escapeHtmlClient(rootLabel)}} in ${{edgeSteps.length}} step(s).</div>`;
+        const items = edgeSteps.map((step, idx) => {{
+          return (
+            '<li class="plan-step">' +
+              `<span class="plan-index">${{idx}}</span> ` +
+              `<span class="plan-action">- ${{escapeHtmlClient(step)}}</span>` +
+            '</li>'
+          );
+        }});
+        planPanelBody.innerHTML = header + '<ul class="plan-list">' + items.join('') + '</ul>';
+      }};
+
+      cy.on('tap', 'node, edge', (evt) => setHover(evt.target.data('detail') || evt.target.data('hover')));
+      cy.on('tap', (evt) => {{
+        if (evt.target === cy) {{
+          setHover(null);
+        }}
+      }});
+
+      const showTooltip = (evt) => {{
+        const html = evt.target.data('hover');
+        if (!html) {{
+          hoverTooltip.classList.remove('visible');
+          return;
+        }}
+        const pos = evt.renderedPosition || evt.position;
+        const rect = cy.container().getBoundingClientRect();
+        const left = rect.left + pos.x + 14 + window.scrollX;
+        const top = rect.top + pos.y + 14 + window.scrollY;
+        hoverTooltip.style.left = `${{left}}px`;
+        hoverTooltip.style.top = `${{top}}px`;
+        hoverTooltip.innerHTML = html;
+        hoverTooltip.classList.add('visible');
+      }};
+
+      const hideTooltip = () => {{
+        hoverTooltip.classList.remove('visible');
+      }};
+
+      cy.on('mouseover', 'node, edge', showTooltip);
+      cy.on('mouseout', 'node, edge', hideTooltip);
+      cy.on('drag', 'node', hideTooltip);
+      cy.on('zoom pan', hideTooltip);
+
+      const resizeHandle = document.getElementById('resizeHandle');
+      const sidebar = document.getElementById('sidebar');
+      const planResizeHandle = document.getElementById('planResizeHandle');
+      const planPanel = document.getElementById('planPanel');
+      const content = document.getElementById('content');
+      let isResizing = false;
+      let isPlanResizing = false;
+
+      const startResize = (event) => {{
+        isResizing = true;
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+        event.preventDefault();
+      }};
+
+      const stopResize = () => {{
+        if (!isResizing) {{
+          return;
+        }}
+        isResizing = false;
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+      }};
+
+      const stopPlanResize = () => {{
+        if (!isPlanResizing) {{
+          return;
+        }}
+        isPlanResizing = false;
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+      }};
+
+      const onResize = (event) => {{
+        if (!isResizing) {{
+          return;
+        }}
+        const rect = content.getBoundingClientRect();
+        const rawWidth = rect.right - event.clientX;
+        const minWidth = 220;
+        const nextWidth = Math.max(minWidth, rawWidth);
+        sidebar.style.width = nextWidth + 'px';
+      }};
+
+      const onPlanResize = (event) => {{
+        if (!isPlanResizing) {{
+          return;
+        }}
+        const rect = content.getBoundingClientRect();
+        const rawWidth = event.clientX - rect.left;
+        const minWidth = 200;
+        const nextWidth = Math.max(minWidth, rawWidth);
+        planPanel.style.width = nextWidth + 'px';
+      }};
+
+      const startPlanResize = (event) => {{
+        isPlanResizing = true;
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+        event.preventDefault();
+      }};
+
+      resizeHandle.addEventListener('mousedown', startResize);
+      planResizeHandle.addEventListener('mousedown', startPlanResize);
+      window.addEventListener('mousemove', onResize);
+      window.addEventListener('mousemove', onPlanResize);
+      window.addEventListener('mouseup', stopResize);
+      window.addEventListener('mouseup', stopPlanResize);
+
+      const searchInput = document.getElementById('searchInput');
+      const searchStats = document.getElementById('searchStats');
+      const searchClear = document.getElementById('searchClear');
+      let lastHits = cy.collection();
+      let searchTimer = null;
+
+      const applySearch = (query, focus) => {{
+        const value = (query || '').trim().toLowerCase();
+        cy.batch(() => {{
+          cy.elements().removeClass('search-hit search-dim');
+          if (!value) {{
+            lastHits = cy.collection();
+            searchStats.textContent = 'Type to search by key, label, or state.';
+            return;
+          }}
+          const hits = cy.nodes().filter((node) => (node.data('search') || '').includes(value));
+          const hitIds = new Set(hits.map((node) => node.id()));
+          const hitEdges = cy.edges().filter((edge) => hitIds.has(edge.source().id()) || hitIds.has(edge.target().id()));
+          cy.elements().addClass('search-dim');
+          hits.addClass('search-hit');
+          hitEdges.addClass('search-hit');
+          lastHits = hits.union(hitEdges);
+          searchStats.textContent = `${{hits.length}} matching nodes`;
+        }});
+        if (focus && lastHits.length) {{
+          cy.fit(lastHits, 80);
+        }}
+      }};
+
+      searchInput.addEventListener('input', () => {{
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => applySearch(searchInput.value, false), 160);
+      }});
+
+      searchInput.addEventListener('keydown', (event) => {{
+        if (event.key === 'Enter') {{
+          applySearch(searchInput.value, true);
+        }}
+      }});
+
+      searchClear.addEventListener('click', () => {{
+        searchInput.value = '';
+        applySearch('', false);
+      }});
+
+      const fitBtn = document.getElementById('fitBtn');
+      fitBtn.addEventListener('click', () => {{
+        cy.fit(undefined, 80);
+      }});
+
+      const layoutBtn = document.getElementById('layoutBtn');
+      layoutBtn.addEventListener('click', () => {{
+        cy.layout({{ name: 'cose', animate: true, fit: true }}).run();
+      }});
+
+      const toggleLabels = document.getElementById('toggleLabels');
+      toggleLabels.checked = showLabelsDefault;
+      const applyLabelVisibility = () => {{
+        cy.nodes().toggleClass('label-hidden', !toggleLabels.checked);
+      }};
+      toggleLabels.addEventListener('change', applyLabelVisibility);
+      applyLabelVisibility();
+
+      const toggleEdgeLabels = document.getElementById('toggleEdgeLabels');
+      toggleEdgeLabels.checked = false;
+      const applyEdgeLabelVisibility = () => {{
+        cy.edges().toggleClass('edge-label-hidden', !toggleEdgeLabels.checked);
+      }};
+      toggleEdgeLabels.addEventListener('change', applyEdgeLabelVisibility);
+      applyEdgeLabelVisibility();
+
+      const splitTopLevel = (text) => {{
+        const input = (text || '').trim();
+        if (!input) {{
+          return [];
+        }}
+        const items = [];
+        let token = '';
+        let parenDepth = 0;
+        let bracketDepth = 0;
+        let braceDepth = 0;
+        let inSingle = false;
+        let inDouble = false;
+        for (let idx = 0; idx < input.length; idx += 1) {{
+          const ch = input[idx];
+          if (ch === '\\') {{
+            token += ch;
+            if (idx + 1 < input.length) {{
+              token += input[idx + 1];
+              idx += 1;
+            }}
+            continue;
+          }}
+          if (ch === "'" && !inDouble) {{
+            inSingle = !inSingle;
+            token += ch;
+            continue;
+          }}
+          if (ch === '"' && !inSingle) {{
+            inDouble = !inDouble;
+            token += ch;
+            continue;
+          }}
+          if (!inSingle && !inDouble) {{
+            if (ch === '(') {{
+              parenDepth += 1;
+            }} else if (ch === ')' && parenDepth > 0) {{
+              parenDepth -= 1;
+            }} else if (ch === '[') {{
+              bracketDepth += 1;
+            }} else if (ch === ']' && bracketDepth > 0) {{
+              bracketDepth -= 1;
+            }} else if (ch === '{{') {{
+              braceDepth += 1;
+            }} else if (ch === '}}' && braceDepth > 0) {{
+              braceDepth -= 1;
+            }} else if (ch === ',' && parenDepth === 0 && bracketDepth === 0 && braceDepth === 0) {{
+              const value = token.trim();
+              if (value) {{
+                items.push(value);
+              }}
+              token = '';
+              continue;
+            }}
+          }}
+          token += ch;
+        }}
+        const tail = token.trim();
+        if (tail) {{
+          items.push(tail);
+        }}
+        return items;
+      }};
+
+      const parseListText = (text) => {{
+        const raw = (text || '').trim();
+        if (!raw || raw === '[]') {{
+          return [];
+        }}
+        if (raw.startsWith('[') && raw.endsWith(']')) {{
+          return splitTopLevel(raw.slice(1, -1));
+        }}
+        return splitTopLevel(raw);
+      }};
+
+      const parseFunctorName = (term) => {{
+        const value = (term || '').trim();
+        if (!value) {{
+          return '';
+        }}
+        const idx = value.indexOf('(');
+        if (idx === -1) {{
+          return value;
+        }}
+        return value.slice(0, idx).trim();
+      }};
+
+      const unwrapNegation = (term) => {{
+        const value = (term || '').trim();
+        if (value.startsWith('neg(') && value.endsWith(')')) {{
+          return value.slice(4, -1).trim();
+        }}
+        if (value.startsWith('not(') && value.endsWith(')')) {{
+          return value.slice(4, -1).trim();
+        }}
+        return null;
+      }};
+
+      const extractEffectLiteral = (effectTerm) => {{
+        const value = (effectTerm || '').trim();
+        if (value.startsWith('add(') && value.endsWith(')')) {{
+          return value.slice(4, -1).trim();
+        }}
+        if (value.startsWith('del(') && value.endsWith(')')) {{
+          return value.slice(4, -1).trim();
+        }}
+        return '';
+      }};
+
+      const toPrologList = (items) => {{
+        if (!items || !items.length) {{
+          return '[]';
+        }}
+        return `[${{items.join(',')}}]`;
+      }};
+
+      const parseFunctorArgs = (termText) => {{
+        const term = (termText || '').trim();
+        if (!term) {{
+          return {{ functor: '', args: [] }};
+        }}
+        const idx = term.indexOf('(');
+        if (idx === -1 || !term.endsWith(')')) {{
+          return {{ functor: term, args: [] }};
+        }}
+        const functor = term.slice(0, idx).trim();
+        const inner = term.slice(idx + 1, -1);
+        const args = splitTopLevel(inner);
+        return {{ functor, args }};
+      }};
+
+      const notesFromPrologResult = (resultTerm) => {{
+        const notes = [];
+        const top = parseFunctorArgs(resultTerm);
+
+        if (top.functor === 'applicable') {{
+          if (top.args[0] === 'start') {{
+            notes.push('All start checks passed.');
+          }} else if (top.args[0] === 'end') {{
+            notes.push('All end checks passed.');
+          }}
+          return notes;
+        }}
+
+        if (top.functor !== 'not_applicable' || top.args.length !== 1) {{
+          return notes;
+        }}
+
+        const reason = parseFunctorArgs(top.args[0]);
+        if (reason.functor === 'start_preconditions_violated') {{
+          const failedText = reason.args.length >= 2 ? reason.args[1] : reason.args[0];
+          const failedList = parseListText(failedText || '');
+          if (failedList.length) {{
+            notes.push('Failed start preconditions:');
+            failedList.forEach((item) => notes.push(`- ${{item}}`));
+          }}
+        }} else if (reason.functor === 'end_preconditions_violated') {{
+          const failedText = reason.args.length >= 2 ? reason.args[1] : reason.args[0];
+          const failedList = parseListText(failedText || '');
+          if (failedList.length) {{
+            notes.push('Failed end preconditions:');
+            failedList.forEach((item) => notes.push(`- ${{item}}`));
+          }}
+        }} else if (reason.functor === 'overall_preconditions_violated') {{
+          notes.push('Overall preconditions are violated.');
+        }} else if (reason.functor === 'invariants_violated') {{
+          notes.push('Action effects violate invariants.');
+        }} else if (reason.functor === 'not_executing') {{
+          notes.push('Action is not executing in this state.');
+        }} else if (reason.functor === 'unknown_action') {{
+          notes.push('Action is unknown in the current Prolog context.');
+        }} else if (reason.functor === 'invalid_phase') {{
+          notes.push('Invalid phase. Use start or end.');
+        }}
+        return notes;
+      }};
+
+      const stateById = new Map();
+      (debugPayload.states || []).forEach((state) => stateById.set(state.id, state));
+
+      const actionByName = new Map();
+      (debugPayload.actions || []).forEach((action) => {{
+        actionByName.set(action.name, {{
+          name: action.name,
+          preStart: parseListText(action.pre_start),
+          preEnd: parseListText(action.pre_end),
+          overall: parseListText(action.overall),
+          effStart: parseListText(action.eff_start),
+          effEnd: parseListText(action.eff_end),
+        }});
+      }});
+      const fallbackActionNames = Array.from(actionByName.keys()).sort();
+
+      const dynamicPredicates = new Set(['executing']);
+      actionByName.forEach((action) => {{
+        action.effStart.forEach((effect) => {{
+          const literal = extractEffectLiteral(effect);
+          const functor = parseFunctorName(literal);
+          if (functor) {{
+            dynamicPredicates.add(functor);
+          }}
+        }});
+        action.effEnd.forEach((effect) => {{
+          const literal = extractEffectLiteral(effect);
+          const functor = parseFunctorName(literal);
+          if (functor) {{
+            dynamicPredicates.add(functor);
+          }}
+        }});
+      }});
+
+      const evaluateLiteral = (stateSet, literal) => {{
+        const value = (literal || '').trim();
+        if (!value) {{
+          return true;
+        }}
+        const negInner = unwrapNegation(value);
+        if (negInner !== null) {{
+          return !stateSet.has(negInner);
+        }}
+        if (value.includes('\\=')) {{
+          const parts = value.split('\\=');
+          if (parts.length >= 2) {{
+            return parts[0].trim() !== parts.slice(1).join('\\=').trim();
+          }}
+        }}
+        if (stateSet.has(value)) {{
+          return true;
+        }}
+        const functor = parseFunctorName(value);
+        if (dynamicPredicates.has(functor)) {{
+          return false;
+        }}
+        return true;
+      }};
+
+      const failedPreconditions = (stateSet, preconditions) => {{
+        return (preconditions || []).filter((precondition) => !evaluateLiteral(stateSet, precondition));
+      }};
+
+      const computeExecutingInvariants = (stateItems, excludedActionName = '') => {{
+        const invariants = [];
+        (stateItems || []).forEach((item) => {{
+          if (!(item.startsWith('executing(') && item.endsWith(')'))) {{
+            return;
+          }}
+          const executingAction = item.slice(10, -1).trim();
+          if (!executingAction || executingAction === excludedActionName) {{
+            return;
+          }}
+          const record = actionByName.get(executingAction);
+          if (record && record.overall.length) {{
+            record.overall.forEach((inv) => invariants.push(inv));
+          }}
+        }});
+        return invariants;
+      }};
+
+      const invariantsViolated = (invariants, effects) => {{
+        const effectSet = new Set((effects || []).map((effect) => (effect || '').trim()).filter(Boolean));
+        for (const invariant of invariants || []) {{
+          const inv = (invariant || '').trim();
+          if (!inv) {{
+            continue;
+          }}
+          const negInner = unwrapNegation(inv);
+          if (negInner !== null) {{
+            if (effectSet.has(`add(${{negInner}})`)) {{
+              return true;
+            }}
+            continue;
+          }}
+          if (effectSet.has(`del(${{inv}})`)) {{
+            return true;
+          }}
+        }}
+        return false;
+      }};
+
+      const explainApplicability = (stateText, actionName, phase) => {{
+        const action = actionByName.get(actionName);
+        if (!action) {{
+          return {{
+            term: `not_applicable(unknown_action(${{actionName}}))`,
+            notes: ['Action not present in parsed log payload.'],
+          }};
+        }}
+
+        const stateItems = parseListText(stateText);
+        const stateSet = new Set(stateItems);
+        const executingLiteral = `executing(${{actionName}})`;
+
+        if (phase === 'end' && !stateSet.has(executingLiteral)) {{
+          return {{
+            term: `not_applicable(not_executing(${{actionName}}))`,
+            notes: [`State does not contain ${{executingLiteral}}.`],
+          }};
+        }}
+
+        const failedOverall = failedPreconditions(stateSet, action.overall);
+        if (failedOverall.length) {{
+          return {{
+            term: `not_applicable(overall_preconditions_violated(${{toPrologList(action.overall)}}))`,
+            notes: ['Failed overall preconditions:', ...failedOverall.map((item) => `- ${{item}}`)],
+          }};
+        }}
+
+        if (phase === 'start') {{
+          const failedStart = failedPreconditions(stateSet, action.preStart);
+          if (failedStart.length) {{
+            return {{
+              term: `not_applicable(start_preconditions_violated(${{toPrologList(action.preStart)}},${{toPrologList(failedStart)}}))`,
+              notes: ['Failed start preconditions:', ...failedStart.map((item) => `- ${{item}}`)],
+            }};
+          }}
+          const invariants = computeExecutingInvariants(stateItems).concat(action.overall);
+          if (invariantsViolated(invariants, action.effStart)) {{
+            return {{
+              term: `not_applicable(invariants_violated(${{toPrologList(invariants)}}))`,
+              notes: ['Start effects violate invariants.'],
+            }};
+          }}
+          return {{
+            term: 'applicable(start)',
+            notes: ['All start checks passed.'],
+          }};
+        }}
+
+        if (phase === 'end') {{
+          const failedEnd = failedPreconditions(stateSet, action.preEnd);
+          if (failedEnd.length) {{
+            return {{
+              term: `not_applicable(end_preconditions_violated(${{toPrologList(action.preEnd)}}))`,
+              notes: ['Failed end preconditions:', ...failedEnd.map((item) => `- ${{item}}`)],
+            }};
+          }}
+          const invariants = computeExecutingInvariants(stateItems, actionName).concat(action.overall);
+          if (invariantsViolated(invariants, action.effEnd)) {{
+            return {{
+              term: `not_applicable(invariants_violated(${{toPrologList(invariants)}}))`,
+              notes: ['End effects violate invariants.'],
+            }};
+          }}
+          return {{
+            term: 'applicable(end)',
+            notes: ['All end checks passed.'],
+          }};
+        }}
+
+        return {{
+          term: `not_applicable(invalid_phase(${{phase}}))`,
+          notes: ['Unknown phase. Use start or end.'],
+        }};
+      }};
+
+      const debugStateSelect = document.getElementById('debugStateSelect');
+      const debugActionSelect = document.getElementById('debugActionSelect');
+      const debugActionManual = document.getElementById('debugActionManual');
+      const debugPhaseSelect = document.getElementById('debugPhaseSelect');
+      const debugExplainBtn = document.getElementById('debugExplainBtn');
+      const debugResult = document.getElementById('debugResult');
+
+      const updateDebugNodeSelection = (stateId) => {{
+        cy.nodes().removeClass('debug-selected');
+        if (!stateId) {{
+          return;
+        }}
+        const node = cy.getElementById(stateId);
+        if (node && node.length) {{
+          node.addClass('debug-selected');
+        }}
+      }};
+
+      const fillDebugControls = () => {{
+        const stateOptions = (debugPayload.states || []).map((state) => {{
+          const depthText = state.depth === null || state.depth === undefined ? 'n/a' : String(state.depth);
+          const summary = state.preview || '(empty)';
+          const label = `${{state.label}} | depth=${{depthText}} | ${{summary}}`;
+          return `<option value="${{state.id}}">${{label}}</option>`;
+        }});
+        debugStateSelect.innerHTML = stateOptions.join('');
+      }};
+
+      const setActionOptions = (actionNames) => {{
+        const names = Array.from(new Set(actionNames || [])).filter(Boolean).sort();
+        const oldValue = debugActionSelect.value;
+        const actionOptions = names.map((name) => {{
+          return `<option value="${{name}}">${{name}}</option>`;
+        }});
+        debugActionSelect.innerHTML = actionOptions.join('');
+        if (names.includes(oldValue)) {{
+          debugActionSelect.value = oldValue;
+        }}
+      }};
+
+      const renderExplanation = (title, lines, sourceLabel = '') => {{
+        const content = [title, ''];
+        if (sourceLabel) {{
+          content.push(`source: ${{sourceLabel}}`);
+          content.push('');
+        }}
+        (lines || []).forEach((line) => content.push(line));
+        debugResult.textContent = content.join('\n');
+      }};
+
+      const runDebugExplainLocal = (stateRecord, actionName, phase) => {{
+        const explanation = explainApplicability(stateRecord.state, actionName, phase);
+        renderExplanation(explanation.term, explanation.notes || [], 'js-fallback');
+      }};
+
+      const runDebugExplain = async () => {{
+        const stateId = debugStateSelect.value;
+        const manualAction = (debugActionManual && debugActionManual.value ? debugActionManual.value : '').trim();
+        const selectedAction = (debugActionSelect.value || '').trim();
+        const actionName = manualAction || selectedAction;
+        const phase = debugPhaseSelect.value;
+        updateDebugNodeSelection(stateId);
+
+        if (!stateId || !actionName) {{
+          debugResult.textContent = 'Select both a state and an action.';
+          return;
+        }}
+        const stateRecord = stateById.get(stateId);
+        if (!stateRecord) {{
+          debugResult.textContent = `State ${{stateId}} not available in this graph.`;
+          return;
+        }}
+
+        if (prologServiceUrl) {{
+          debugResult.textContent = 'Querying Prolog service...';
+          try {{
+            const response = await fetch(prologServiceUrl, {{
+              method: 'POST',
+              headers: {{ 'Content-Type': 'application/json' }},
+              body: JSON.stringify({{
+                state: stateRecord.state,
+                action: actionName,
+                phase: phase
+              }})
+            }});
+            let payload = null;
+            try {{
+              payload = await response.json();
+            }} catch (_err) {{
+              payload = null;
+            }}
+            if (!response.ok || !payload || !payload.ok) {{
+              const errorMsg = payload && payload.error ? payload.error : `HTTP ${{response.status}}`;
+              runDebugExplainLocal(stateRecord, actionName, phase);
+              debugResult.textContent += `\n\nProlog service error: ${{errorMsg}}`;
+              return;
+            }}
+            const resultTerm = payload.result_term || '(empty result)';
+            const resultNotes = notesFromPrologResult(resultTerm);
+            renderExplanation(resultTerm, resultNotes, 'prolog-service');
+            return;
+          }} catch (err) {{
+            runDebugExplainLocal(stateRecord, actionName, phase);
+            debugResult.textContent += `\n\nProlog service unreachable: ${{err}}`;
+            return;
+          }}
+        }}
+
+        runDebugExplainLocal(stateRecord, actionName, phase);
+      }};
+
+      if ((debugPayload.states || []).length === 0) {{
+        debugExplainBtn.disabled = true;
+        debugResult.textContent = 'Applicability debugger unavailable: no states parsed from this log.';
+      }} else {{
+        fillDebugControls();
+        setActionOptions(fallbackActionNames);
+        debugStateSelect.addEventListener('change', () => {{
+          updateDebugNodeSelection(debugStateSelect.value);
+          runDebugExplain();
+        }});
+        debugExplainBtn.addEventListener('click', runDebugExplain);
+        debugActionSelect.addEventListener('change', runDebugExplain);
+        debugPhaseSelect.addEventListener('change', runDebugExplain);
+        if (debugStateSelect.value) {{
+          updateDebugNodeSelection(debugStateSelect.value);
+        }}
+        if (!fallbackActionNames.length && !prologServiceUrl) {{
+          debugExplainBtn.disabled = true;
+          debugResult.textContent = 'No log-derived actions available. Type one manually to query Prolog.';
+        }} else {{
+          runDebugExplain();
+        }}
+        if (debugActionManual) {{
+          debugActionManual.addEventListener('keydown', (event) => {{
+            if (event.key === 'Enter') {{
+              runDebugExplain();
+            }}
+          }});
+          debugActionManual.addEventListener('input', () => {{
+            if (debugActionManual.value.trim()) {{
+              debugExplainBtn.disabled = false;
+            }}
+          }});
+        }}
+      }}
+
+      cy.on('tap', 'node', (evt) => {{
+        const nodeId = evt.target.id();
+        renderPlanForNode(nodeId);
+        if (debugStateSelect && stateById.has(nodeId)) {{
+          debugStateSelect.value = nodeId;
+          updateDebugNodeSelection(nodeId);
+        }}
+      }});
+    }}
+  </script>
+</body>
+</html>

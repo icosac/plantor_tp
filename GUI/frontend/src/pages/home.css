@@ -1,0 +1,198 @@
+.workflow-page {
+    margin-top: 0.5rem;
+}
+
+.workflow-progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.workflow-step-indicator {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+.workflow-step-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.workflow-step-chip {
+    border: 1px solid #d0d7de;
+    background: #f8f9fa;
+    border-radius: 999px;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.875rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+}
+
+.workflow-step-chip:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+.workflow-step-chip.done {
+    background: #e8f5e9;
+    border-color: #a5d6a7;
+}
+
+.workflow-step-chip.active {
+    background: #e7f1ff;
+    border-color: #87b5ff;
+    font-weight: 600;
+}
+
+.workflow-step-number {
+    display: inline-flex;
+    width: 1.35rem;
+    height: 1.35rem;
+    border-radius: 50%;
+    align-items: center;
+    justify-content: center;
+    background: #dee2e6;
+    font-size: 0.75rem;
+}
+
+.workflow-step-chip.active .workflow-step-number {
+    background: #0d6efd;
+    color: #ffffff;
+}
+
+.placeholder-step-title {
+    color: #495057;
+    min-height: 2rem;
+}
+
+.prompt-top {
+    margin-bottom: 1.25rem;
+}
+
+.consistency-controls {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.llm-select-wrap {
+    min-width: 300px;
+    max-width: 420px;
+}
+
+.llm-select-wrap .form-label {
+    margin-bottom: 0.35rem;
+    font-weight: 600;
+}
+
+.consistency-btn {
+    min-width: 220px;
+    height: 38px;
+}
+
+.consistency-override {
+    border: 1px solid #f5c2c7;
+    background: #fff5f5;
+    border-radius: 0.5rem;
+    padding: 0.75rem 0.9rem;
+}
+
+.consistency-override .form-check-label {
+    font-size: 0.95rem;
+}
+
+.kb-view-toggle {
+    background: #f8f9fa;
+    border: 1px solid #dce3ea;
+    border-radius: 0.5rem;
+    padding: 0.6rem 0.8rem;
+}
+
+.kb-view-toggle.form-check {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-left: 0.8rem;
+}
+
+.kb-view-toggle.form-check .form-check-input {
+    float: none;
+    margin: 0;
+    position: static;
+}
+
+.kb-view-toggle .form-check-label {
+    margin: 0;
+    font-weight: 600;
+}
+
+.verification-toggle {
+    align-items: center !important;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.verify-cost-note {
+    color: #a15c00;
+    font-size: 0.9rem;
+    font-weight: 600;
+    flex-basis: 100%;
+    margin-left: 1.6rem;
+    margin-top: 0.1rem;
+}
+
+.verify-retries-row {
+    align-items: center;
+    display: flex;
+    flex-basis: 100%;
+    gap: 0.5rem;
+    margin-left: 1.6rem;
+}
+
+.verify-retries-label {
+    color: #495057;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.verify-retries-input {
+    max-width: 7rem;
+}
+
+.kb-output textarea {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    overflow-y: auto;
+    resize: vertical;
+    min-height: 10rem;
+}
+
+.hl-plan-visualization-frame-wrap {
+    border: 1px solid #d0d7de;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.hl-plan-visualization-frame {
+    width: 100%;
+    min-height: 760px;
+    border: 0;
+    background: #ffffff;
+}
+
+.hl-plan-log {
+    background: #f8f9fa;
+    border: 1px solid #e3e6eb;
+    border-radius: 0.5rem;
+    max-height: 320px;
+    overflow: auto;
+    padding: 0.75rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+}

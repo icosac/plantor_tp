@@ -1,0 +1,354 @@
+# Copyright © University of Trento and DLR 2025.
+# This software is proprietary to the University of Trento and DLR. Use is permitted solely within
+# the Horizon Europe project “INVERSE” (Grant Agreement ID: 101136067).
+# This license does not override any rights or obligations established in the Grant Agreement.
+# Redistribution or use outside the project is prohibited.
+
+entries:
+  convo:
+    ############################################################################
+    ###############################     0     ##################################
+    ############################################################################
+    0: 
+      Q:
+        role: 'user'
+        content: | 
+          Can you generate a Prolog snippet of code that describes the static knowledge base for
+          the following scenario? Also, highlight which are the resources of the problem, for
+          example the agents, that is, those predicates that carry out tasks.
+          Given an initial state in which there are four blocks b1, b2, b3, b5 on the table in 
+          positions (2,2), (1,1), (3,3), (4,4), respectively, and a fifth block b4 on top of b3 in 
+          position (3,3), move the block b2 on top of b1, b3 on top of b2 and place b5 on the table 
+          in position (0,0) and b4 on the table in position (3,3). The agent is initially available 
+          and it will also be available at the end.
+
+      A:
+        role : 'assistant'
+        content: |
+          Sure. The problem states that there are 5 blocks at the beginning and 5 blocks at the end,
+          so each block is static part of the knowledge base since they are not removed or added 
+          during the actions. We'll use the predicate `block(Block)` to describe this. The scenario
+          also describes some positions on a table, which are immutable by definition, so we'll use
+          the predicate `pos(X, Y)` to describe this. Moreover, the description talks about an agent
+          which carries out actions. This agent is not removed from the description of the state, so
+          it is a static part of the knowledge base, and we'll use the predicate `agent(Agent)` to
+          describe it. Finally, since the agent is what carries out the actions, we'll use the
+          predicate `resources(agent(_))` to describe that whatever agent we consider, that is a 
+          resource. 
+          Here it the static knowledge base in Prolog:
+          ```kb
+          % Positions
+          pos(0,0).
+          pos(1,1).
+          pos(2,2).
+          pos(3,3).
+          pos(4,4).
+
+          % Blocks
+          block(b1).
+          block(b2).
+          block(b3).
+          block(b4).
+          block(b5).
+
+          % Agent
+          agent(a1).
+
+          % Resources
+          resources(agent(_)).
+          ```
+          
+          Notice that we do not add more blocks or positions than the ones specified in the initial
+          or goal conditions, as we do not have knowledge of them. 
+          Also mind to use the term `resources(predicate)` to describe the resources of the problem, 
+          and do not itemize them as single `resources(predicate)` predicates.
+
+
+    ############################################################################
+    ###############################     1     ##################################
+    ############################################################################
+    1:
+      Q:
+        role: 'user'
+        content: |     
+          Can you provide the general static knowledge base for the following scenario? 
+          There are 7 blocks on a table. In the initial state of the simulation, block b1 is in 
+          position (2,2), block b2 is in position (4,4), block b4 is in position (8,8). Block b5 is 
+          on top of block b1 in position (2,2) and block b3 is on top of block b2 in position 
+          (4,4). After moving the blocks around during the simulation, at the end, we have b5 on top
+          of block b4, both in position (8,8), and the remaining blocks b1, b2 and b3 are in the 
+          same positions as in the initial state. There are other blocks which are not relevant for 
+          the simulation, such as b6, b7. We do not care about their position. 
+          There are 8 agents with a robotic arm. 
+      A: 
+        role: 'assistant'
+        content: |
+          Sure, here is the description of the static knowledge base
+          ```kb
+          % Positions
+          pos(2,2).
+          pos(4,4).
+          pos(8,8).
+
+          % Blocks
+          block(b1).
+          block(b2).
+          block(b3).
+          block(b4).
+          block(b5).
+          block(b6).
+          block(b7).
+
+          % Agents
+          agent(a1).
+          agent(a2).
+          agent(a3).
+          agent(a4).
+          agent(a5).
+          agent(a6).
+          agent(a7).
+          agent(a8).
+
+          % Resources
+          resources(agent(_)).
+          ```
+
+          As for the rest, I enumerated the agents available as well as the blocks that are part of
+          the scenario.
+          The only predicate that can be used to carry out task is `agent`, which is then added to
+          the `resources` predicate to indicate that the agents are resources.
+          Also mind to use the term `resources(predicate)` to describe the resources of the problem, 
+          and do not itemize them as single `resources(predicate)` predicates.
+
+
+    ############################################################################
+    ###############################     2     ##################################
+    ############################################################################
+    2:
+      Q:
+        role: 'user'
+        content: |     
+          Can you provide the general knowledge base for the following scenario? 
+          "There are 5 blocks on a table. In the initial state of the simulation, block b1 is in 
+          position (1,1), block b2 is in position (2,2), block b3 is in position (3,3), b4 is in
+          position (4,4) and b5 is in position (5,5). After the execution of the plan, the blocks 
+          are still on the table, but their positions are b1: (5,5), b2: (4,4), b3: (3,3), b4: (2,2)
+          and b5: (1,1). There are two available agents that can carry out the task. They are 
+          available at the beginning and will be available at the end."
+      
+      A: 
+        role: 'assistant'
+        content: |
+          Sure, here is the description of the static knowledge base
+          ```kb
+          % Positions
+          pos(1,1).
+          pos(2,2).
+          pos(3,3).
+          pos(4,4).
+          pos(5,5).
+          
+          % Blocks
+          block(b1).
+          block(b2).
+          block(b3).
+          block(b4).
+          block(b5).
+
+          % Agents
+          agent(a1).
+          agent(a2).
+
+          % Resources
+          resources(agent(_)).
+          ```
+
+    ############################################################################
+    ###############################     3     ##################################
+    ############################################################################
+    3:
+      Q:
+        role: 'user'
+        content: |     
+          The following knowledge base has a problem with the resources predicates. Can you fix it?
+          ```kb
+          % Positions
+          pos(2,2).
+          pos(4,4).
+          pos(8,8).
+
+          % Blocks
+          block(b1).
+          block(b2).
+          block(b3).
+          block(b4).
+          block(b5).
+          block(b6).
+          block(b7).
+
+          % Agents
+          agent(a1).
+          agent(a2).
+          agent(a3).
+          agent(a4).
+          agent(a5).
+          agent(a6).
+          agent(a7).
+          agent(a8).
+
+          % Resources
+          resources(agent(a1)).
+          resources(agent(a2)).
+          resources(agent(a3)).
+          resources(agent(a4)).
+          resources(agent(a5)).
+          resources(agent(a6)).
+          resources(agent(a7)).
+          resources(agent(a8)).
+      
+      A: 
+        role: 'assistant'
+        content: |
+          Sure, the resources should be included only in the `resources` predicate, and not as
+          individual `resource` predicates. Here is the corrected knowledge base:
+          ```kb
+          % Positions
+          pos(2,2).
+          pos(4,4).
+          pos(8,8).
+
+          % Blocks
+          block(b1).
+          block(b2).
+          block(b3).
+          block(b4).
+          block(b5).
+          block(b6).
+          block(b7).
+
+          % Agents
+          agent(a1).
+          agent(a2).
+          agent(a3).
+          agent(a4).
+          agent(a5).
+          agent(a6).
+          agent(a7).
+          agent(a8).
+
+          % Resources
+          resources(agent(_)).
+          ```
+
+          To do so, we use the _ wildcard to match any agent, and then we add the `resources` 
+          predicate. This way, we can describe the resources of the problem without having to
+          enumerate them all.
+
+
+    ############################################################################
+    ###############################     4     ##################################
+    ############################################################################
+    4: 
+      Q:
+        role: 'user'
+        content: |
+          There are 3 blocks on the table, two regular blocks and one elongated block for the arch.
+          Our goal is to create an arch by moving the two support blocks to their support positions
+          and then placing the architrave on top of them. The positions available are as follows:
+          - (1, 1)
+          - (2, 2)
+          - (3, 4)
+          - (5, 5)
+          - (9, 9)
+          - (1.5, 1.5)
+          Initially, the blocks are free and the agents are available. Moreover, one block is in position (3, 4), another is 
+          in position (5, 5) and the architrave is in position (9, 9).
+          We want to place the first support block at (1, 1), the second support block at (2, 2) and the architrave on top of them. 
+          There are two agents that can carry out this task, namely a1 and a2. They are free both at the beginning and at the end.
+          Can you provide the general knowledge base and specify the resources available?
+
+      A:
+        role: 'assistant'
+        content: |
+          Sure. The description states that we have 3 blocks, of which one is elongated for the arch.
+          To express this, we use `block(B)` for every physical block and `architrave(A)` for the elongated block.
+          The description also tells us that there are two agents, `a1` and `a2`, that can carry out the task.
+          Moreover, we have a list of positions available for the blocks, which will be expressed using the `pos`
+          predicate. Finally, the only resource that we have that can accomplish tasks is the agents, so we will use 
+          the predicate `resources(agent(_))` to express this.
+          ```kb
+          :- discontiguous resources/1.
+          
+          % blocks
+          block(block1).
+          block(block2).
+          block(arch1).
+          architrave(arch1).
+
+          % agents
+          agent(a1).
+          agent(a2).
+
+          % positions
+          pos(1, 1).
+          pos(2, 2).
+          pos(3, 4).
+          pos(5, 5).
+          pos(9, 9).
+          pos(1.5, 1.5).
+
+          % resources
+          resources(agent(_)).
+          ```
+    ############################################################################
+    ###############################     5     ##################################
+    ############################################################################
+    5: 
+      Q:
+        role: 'user'
+        content: |
+          In this scenario, we want to construct an arch using 3 blocks and a robotic arm. The blocks are
+          initially distributed on the table in positions (32,60), (113,83), and (44,40). Blocks b1 and b2 have 
+          dimensions 1x1x1 whereas b3 is longer and is considered as an architrave. The goal is to move
+          the two support blocks b1 and b2 to positions (86,52) and (72,52), respectively, and place b3 on top of 
+          them as an architrave in position (79, 52). There are two agents that can:
+          - from a position on the table to another position on the table;
+          - from a position on the table, to the top of another block;
+          - from the top of a block, to a position on the table;
+          - from the top of a block, to the top of another block.
+          The action to place the last block on top as an architrave should be handled differently than these 
+          moves as it must check that the two support blocks are at their target positions and clear. 
+          The agents are available and can be used. The blocks are initially free and can be moved by the agents.
+          Can you provide the general knowledge base and specify the resources available?
+
+      A:
+        role: 'assistant'
+        content: |
+          Sure. The description states that we have 3 blocks, of which one is elongated for the arch.
+          To express this, we use `block(B)` for every physical block and `architrave(A)` for the elongated block.
+          The description also tells us that there are two agents, `a1` and `a2`, that can carry out the task.
+          Moreover, we have a list of positions available for the blocks, which will be expressed using the `pos`
+          predicate. Finally, the only resource that we have that can accomplish tasks is the agents, so we will use 
+          the predicate `resources(agent(_))` to express this.
+          ```kb
+          % Positions
+          pos(32,60).
+          pos(113,83).
+          pos(44,40).
+          pos(86,52).
+          pos(72,52).
+          pos(79,52).
+
+          % Blocks
+          block(b1).
+          block(b2).
+          block(b3).
+          architrave(b3).
+
+          % Agents
+          agent(a1).
+          agent(a2).
+
+          % Resources
+          resources(agent(_)).
+          ```

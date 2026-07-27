@@ -1,0 +1,244 @@
+# Copyright © University of Trento and DLR 2025.
+# This software is proprietary to the University of Trento and DLR. Use is permitted solely within
+# the Horizon Europe project “INVERSE” (Grant Agreement ID: 101136067).
+# This license does not override any rights or obligations established in the Grant Agreement.
+# Redistribution or use outside the project is prohibited.
+
+entries:
+  system_msg:
+    role: 'system'
+    content: "You are a helpful assistant. Your role is to do a consistency check on the description
+      of the environment, which is divided in high-level, low-level and a combination of the two. Some
+      examples are provided to aid you, please follow them. Think silently.
+      Return a verdict (OK or PROBLEM) and a very short explanation (1-2 sentences).
+      Do not output chain-of-thought or step-by-step reasoning."
+    
+  convo:
+    ############################################################################
+    ###############################     0     ##################################
+    ############################################################################
+    0: 
+      Q:
+        role: 'user'
+        content: | 
+          Consider the following description of a scenario. State if this scenario is feasible or
+          not. Please write OK if it is, PROBLEM if it is not. Provide one short explanation sentence only. Do not describe your thought process.
+          Given an initial state in which there are two blocks b1, b2 in position (1,1) and (2,2) 
+          respectively, move the block b1 to position (3,3) and place b2 on top of b1 using an 
+          agent, which is initially available and it will also be available at the end.
+      A:
+        role : 'assistant'
+        content: |
+          OK.  
+          The description provides enough pieces of information on the elements involved. 
+
+    ############################################################################
+    ###############################     4     ##################################
+    ############################################################################
+    4:
+      Q:
+        role: 'user'
+        content: | 
+          Given the following description of the environment, can you please state if the 
+          description is consistent or if it contains errors? If it's fine, please write OK, 
+          otherwise write PROBLEM. In both cases, please describe your thoughts.
+          There are 3 blocks on a table. In the initial state of the simulation, block b1 is in 
+          position (2,2), block b2 is in position (4,4), block b4 is in position (8,8). 
+          After moving the blocks around during the simulation, at the end, we have b1 on top of 
+          block b4, both in position (8,8), and the remaining blocks b2 is in the same position as
+          in the initial state.  
+          There are 8 agents with a robotic arm. 
+      A:
+        role : 'assistant'
+        content: |
+          OK. 
+          The description is consistent. 
+
+
+    ############################################################################
+    ###############################     5     ##################################
+    ############################################################################
+    5:
+      Q:
+        role: 'user'
+        content: | 
+          Given the following description of the environment, can you please state if the 
+          description is consistent or if it contains errors? If it's fine, please write OK, 
+          otherwise write PROBLEM. In both cases, please describe your thoughts.
+          There are 7 blocks on a table. In the initial state of the simulation, block b1 is in 
+          position (2,2), block b2 is in position (4,4), block b4 is in position (8,8). Block b5 is 
+          on top of block b1 in position (2,2) and block b3 is on top of block b2 in position (4,4). 
+          After moving the blocks around during the simulation, at the end, we have b5 on top of 
+          block b4, both in position (8,8), and the remaining blocks b1, b2 and b3 are in the same 
+          positions as in the initial state. Other blocks, such as b6, are assigned random positions
+          on the table. Please explicitly assign these positions. 
+          There are 8 agents with a robotic arm. 
+      A:
+        role : 'assistant'
+        content: |
+          OK. 
+          The description is consistent. 
+          
+
+    ############################################################################
+    ###############################     6     ##################################
+    ############################################################################
+    6:
+      Q:
+        role: 'user'
+        content: | 
+          Given the following description of the environment, can you please state if the 
+          description is consistent or if it contains errors? If it's fine, please write OK, 
+          otherwise write PROBLEM. In both cases, provide one short explanation sentence only. Do not describe your thought process.
+          There are 3 blocks on a table. In the initial state of the simulation, block b1 is in 
+          position (1,1), block b2 is on top of b1 in position (1,1), and block b3 is in position 
+          (2,2). After moving the blocks around during the simulation, at the end, we have b1 on top
+          of b2 in position (1,1) and b3 in position (2,2).  
+          There is an agent with a robotic arm.
+      A:
+        role : 'assistant'
+        content: |
+          PROBLEM. 
+          The description is not consistent. The problem states that there are only two positions 
+          on the table, (1,1) and (2,2). The difference between the initial and final states is
+          that blocks b2 and b1 are swapped, but this is not possible since there are not enough
+          positions on the table to carry out this action without additional positions or additional 
+          agents. 
+          
+
+    ############################################################################
+    ###############################     7     ##################################
+    ############################################################################
+    7:
+      Q:
+        role: 'user'
+        content: | 
+          Given the following description of the environment, can you please state if the 
+          description is consistent or if it contains errors? If it's fine, please write OK, 
+          otherwise write PROBLEM. In both cases, please describe your thoughts.
+          There are 3 blocks on a table. In the initial state of the simulation, block b1 is in 
+          position (1,1), block b2 is on top of b1 in position (1,1), and block b3 is in position 
+          (2,2). After moving the blocks around during the simulation, at the end, we have b1 on top
+          of b2 in position (1,1) and b3 in position (2,2). Position (3,3) is available on the table
+          and free. 
+          There is one agent with a robotic arm.
+      A:
+        role : 'assistant'
+        content: |
+          OK. 
+          The description is consistent. The goal is to swap the positions of b1 and b2, which is
+          possible since there is another free location that can be used to temporarily place a 
+          block. The idea is either to put b2 on top of b3, or to put b2 in the free space in (3,3),
+          then place b1 either on top of b3 or in the free space, depending on whether b2 was placed
+          in (3,3) or on top of b3, respectively. Finally, the agent will place b2 first in (1,1) 
+          and then b1 on top of b2 in (1,1). 
+          
+
+    ############################################################################
+    ###############################     8     ##################################
+    ############################################################################
+    8:
+      Q:
+        role: 'user'
+        content: | 
+          Given the following description of the environment, can you please state if the 
+          description is consistent or if it contains errors? If it's fine, please write OK, 
+          otherwise write PROBLEM. In both cases, provide one short explanation sentence only. Do not describe your thought process.
+          There are 3 blocks on a table. In the initial state of the simulation, block b1 is in 
+          position (1,1), block b2 is on top of b1 in position (1,1), and block b3 is in position 
+          (2,2). After moving the blocks around during the simulation, at the end, we have b2 on top
+          of b1 in position (1,1) and b3 on top of b1 in position (1,1). 
+          There is one agent with a robotic arm.
+      A:
+        role : 'assistant'
+        content: |
+          PROBLEM. 
+          The description is not consistent. The goal states that both b2 and b3 are directly on top
+          of b1 in position (1,1), which cannot be possible since two blocks cannot occupy the same 
+          position at the same time.           
+    
+    ############################################################################
+    ###############################     10     #################################
+    ############################################################################
+    10: 
+      Q:
+        role: 'user'
+        content: | 
+          Given the following high-level description of the environment, can you please state if the 
+          description is consistent or if it contains errors? If it's fine, please write OK, 
+          otherwise write PROBLEM. In both cases, please describe your thoughts.
+          There are 7 blocks on a table. In the initial state of the simulation, block b1 is in 
+          position (2,2), block b2 is in position (4,4), block b4 is in position (8,8). Block b5 is 
+          on top of block b1 in position (2,2) and block b3 is on top of block b2 in position (4,4).
+          After moving the blocks around during the simulation, at the end, we have b5 on top of 
+          block b4, both in position (8,8), and the remaining blocks b1, b2 and b3 are in the same 
+          positions as in the initial state. The position of other blocks, such as b6, is irrelevant
+          at the moment and can be considered as random positions on the table. Please explicitly 
+          assign these positions when generating the knowledge base.
+          There are 8 agents with a robotic arm. 
+      A:
+        role : 'assistant'
+        content: |
+          OK.
+          The description is consistent. Even though just 5 out of the 7 blocks have been described,
+          the position of the others is explicitly said to be irrelevant and that they can be 
+          assigned random positions. The initial state describes the position of 5 out of the 7
+          blocks. The remaining two blocks are said to not be relevant for the problem, and that 
+          their positions can be assigned randomly. It will be my task to complete the 
+          knowledge-base with random positions making it consistent. The final state describes the 
+          position of the blocks after the actions have been performed highlighting the position of 
+          the blocks that have changed. Finally, both the initial and final states describe the 
+          number of agents available to perform the actions.
+
+
+
+    ############################################################################
+    ###############################     11    ##################################
+    ############################################################################
+    11: 
+      Q:
+        role: 'user'
+        content: | 
+          Given the following high-level description of the environment, can you please state if the 
+          description is consistent or if it contains errors? If it's fine, please write OK, 
+          otherwise write PROBLEM. In both cases, provide one short explanation sentence only. 
+          There are 5 blocks on a table. In the initial state of the simulation, block b1 is in 
+          position (1,1), block b2 is in position (2,2), block b3 is in position (3,3), b4 is in
+          position (4,4) and b5 is in position (5,5). After the execution of the plan, the blocks 
+          are still on the table, but their positions are b1: (5,5), b2: (4,4), b3: (3,3), b4: (2,2)
+          and b5: (1,1). There is one available agent that can carry out the task. It is available 
+          at the beginning and will be available at the end.
+      A:
+        role : 'assistant'
+        content: |
+          PROBLEM.
+          The description is inconsistent. Even though the blocks have valid positions and there
+          is an agent that can carry out the task, the final state is not reachable since the only
+          positions specified are the ones where the blocks are and it is not possible to swap the
+          blocks. 
+
+
+    ############################################################################
+    ###############################     12    ##################################
+    ############################################################################
+    12: 
+      Q:
+        role: 'user'
+        content: | 
+          Given the following high-level description of the environment, can you please state if the 
+          description is consistent or if it contains errors? If it's fine, please write OK, 
+          otherwise write PROBLEM. In both cases, provide one short explanation sentence only. 
+          There are 5 blocks on a table. In the initial state of the simulation, block b1 is in 
+          position (1,1), block b2 is in position (2,2), block b3 is in position (3,3), b4 is in
+          position (4,4) and b5 is in position (5,5). After the execution of the plan, the blocks 
+          are still on the table, but their positions are b1: (5,5), b2: (4,4), b3: (3,3), b4: (2,2)
+          and b5: (1,1). There are two available agents that can carry out the task. They are
+          available at the beginning and will be available at the end.
+      A:
+        role : 'assistant'
+        content: |
+          OK.
+          The description is consistent. Even though it may SEEM to be unfeasible since the only 
+          positions specified are the ones where the blocks are and it is not possible to swap the
+          blocks, the fact that there are two agents available makes it possible to swap the blocks
+          by making one of the agents pick up the blocks freeing one position to swap the blocks.

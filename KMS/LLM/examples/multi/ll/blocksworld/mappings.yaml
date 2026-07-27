@@ -1,0 +1,319 @@
+# Copyright © University of Trento and DLR 2025.
+# This software is proprietary to the University of Trento and DLR. Use is permitted solely within
+# the Horizon Europe project “INVERSE” (Grant Agreement ID: 101136067).
+# This license does not override any rights or obligations established in the Grant Agreement.
+# Redistribution or use outside the project is prohibited.
+
+entries:
+  convo:
+    ############################################################################
+    ###############################     0     ##################################
+    ############################################################################
+    0: 
+      Q:
+        role: 'user'
+        content: |
+          Once we have the high-level actions and the low-level actions, how do we map them?
+
+      A:
+        role: 'assistant'
+        content: |
+            The mapping between high-level actions and low-level actions is done using the following 
+            predicate: 
+            ```mappings
+            mapping(hl_action_name(hl_args),
+              [
+                ll_action_name1(ll_args),
+                ll_action_name2(ll_args)
+              ]
+            ).
+            ```
+            This allows us to map a high-level action to one or more low-level actions. Notice that
+            each high-level durative action is mapped as a whole. 
+            Regarding the choice of the low-level actions to choose for the mapping, it is based 
+            on common sense and the requirements of the scenario. For example, if the high-level
+            action is to move a block from one position to another, the low-level actions could be
+            to move the arm near the block, pick the block, move the arm to the desired position, 
+            and then release it.
+            Also notice that we use the `mappings` tag to highlight the fact that the code snippet
+            is a mapping between high-level and low-level actions.
+
+    ############################################################################
+    ###############################     1     ##################################
+    ############################################################################
+    1:
+      Q:
+        role: 'user'
+        content: |
+          Consider the following high-level action:
+          ```actions
+          hl_d_action(
+            move_block_table_to_table(Agent, Block, X1, Y1, X2, Y2),
+            [ontable(Block), at(Block, X1, Y1), available(Agent), clear(Block), pos(X1, Y1), pos(X2, Y2), block(Block), agent(Agent)],
+            [neg(at(_, X2, Y2))],
+            [],
+            [del(available(Agent)), del(clear(Block)), del(at(Block, X1, Y1)), del(ontable(Block))],
+            [add(available(Agent)), add(at(Block, X2, Y2)), add(ontable(Block)), add(clear(Block))],
+            [1, 3]
+          ).
+          ```
+          And consider the following low-level actions:
+          ```ll_actions
+          ll_d_action(ll_grip(A),
+            [ll_arm(A), ll_gripper(A, open)],
+            [],
+            [],
+            [del(ll_gripper(A, open))],
+            [add(ll_gripper(A, closed))],
+            [1,2]
+          ).
+          ll_d_action(ll_release(A),
+            [ll_arm(A), ll_gripper(A, closed)],
+            [],
+            [],
+            [del(ll_gripper(A, closed))],
+            [add(ll_gripper(A, open))],
+            [1,2]
+          ).
+          ll_d_action(ll_move_arm(A, X1, Y1, X2, Y2),
+            [ll_arm(A), pos(X1, Y1), pos(X2, Y2), ll_arm_at(A, X1, Y1)],
+            [neg(ll_arm_at(_, X2, Y2))],
+            [],
+            [del(ll_arm_at(A, X1, Y1))],
+            [add(ll_arm_at(A, X2, Y2))],
+            [1,2]
+          ).
+          ```
+          Can you provide a mapping between the high-level action and the low-level actions?
+
+      A:
+        role: 'assistant'
+        content: |
+          Sure. Here is the mapping between the high-level action and the low-level actions:
+          ```mappings
+          mapping(move_block_table_to_table(Agent, _Block, X1, Y1, X2, Y2),
+            [
+              ll_move_arm(Agent, _, _, X1, Y1),
+              ll_grip(Agent),
+              ll_move_arm(Agent, X1, Y1, X2, Y2),
+              ll_release(Agent)
+            ]
+          ).
+          ```
+          Notice that the high-level action `move_block_table_to_table` is mapped to 4 low-level
+          actions, because in order to move a block, the robotic arm must be close enough to grip
+          the block with the end effector, then, after having gripped it, it must move the arm in 
+          the final position and finally it can release it.  
+          The `mappings` tag is used to highlight the fact that the code snippet is a mapping between 
+          high-level and low-level actions.
+
+          
+    ############################################################################
+    ###############################     2     ##################################
+    ############################################################################
+    2: 
+      Q:
+        role: 'user'
+        content: |
+          Given the general knowledge-base obtained from the low-level description:
+          ```kb
+          % Positions
+          pos(32,60).
+          pos(113,83).
+          pos(44,40).
+          pos(86,52).
+          pos(72,52).
+          pos(79,52).
+          pos(4,4).
+          pos(5,5).
+
+          % Blocks
+          block(b1).
+          block(b2).
+          block(b3).
+          architrave(b3).
+
+          % Agents
+          agent(a1).
+          agent(a2).
+
+          % Low-level predicates for arms and grippers
+          ll_arm(a1).
+          ll_arm(a2).
+
+          ll_gripper(a1).
+          ll_gripper(a2).
+
+          % Resources
+          resources(agent(_)).
+          resources(ll_arm(_)).
+          resources(ll_gripper(_)).
+          ```
+          Given the initial and final states generated from the low-level description:
+          ```init
+          init_state([
+            ontable(b1), ontable(b2), ontable(b3),
+            at(b1,32,60), at(b2,113,83), at(b3,44,40),
+            clear(b1), clear(b2), clear(b3),
+            available(a1), available(a2),
+            ll_arm_at(a1,4,4,_), ll_arm_at(a2,5,5,_),
+            ll_gripper(a1,open), ll_gripper(a2,open)
+          ]).
+          ```
+          ```goal
+          goal_state([
+            ontable(b1), ontable(b2),
+            on(b3, b1), on(b3, b2),
+            at(b1,86,52), at(b2,72,52), at(b3,79,52),
+            clear(b3),
+            available(a1), available(a2),
+            ll_arm_at(a1,_,_,_), ll_arm_at(a2,_,_,_),
+            ll_gripper(a1,_), ll_gripper(a2,_)
+          ]).
+          ```
+          Given the high-level action generated from the high-level description:
+          ```actions
+          hl_d_action(move_table_to_table(Agent, Block, X1, Y1, X2, Y2),
+            [ontable(Block), at(Block, X1, Y1), available(Agent), clear(Block), agent(Agent), pos(X1, Y1), pos(X2, Y2), block(Block)],
+            [neg(at(_, X2, Y2))],
+            [],
+            [del(available(Agent)), del(clear(Block)), del(ontable(Block)), del(at(Block, X1, Y1))],
+            [add(ontable(Block)), add(at(Block, X2, Y2)), add(clear(Block)), add(available(Agent))],
+            [1, 3]
+          ).
+          hl_d_action(move_table_to_block(Agent, Block1, Block2, X1, Y1, X2, Y2),
+            [available(Agent), ontable(Block1), at(Block1, X1, Y1), at(Block2, X2, Y2), clear(Block1), agent(Agent), pos(X1, Y1), pos(X2, Y2), block(Block1), block(Block2), Block1 \\= Block2],
+            [clear(Block2)],
+            [at(Block2, X2, Y2)],
+            [del(available(Agent)), del(clear(Block1)), del(ontable(Block1)), del(at(Block1, X1, Y1))],
+            [del(clear(Block2)), add(on(Block1, Block2)), add(at(Block1, X2, Y2)), add(clear(Block1)), add(available(Agent))],
+            [1, 3]
+          ).
+          hl_d_action(move_onblock_to_table(Agent, Block1, Block2, X1, Y1, X2, Y2),
+            [available(Agent), on(Block1, Block2), at(Block1, X1, Y1), at(Block2, X1, Y1), clear(Block1), agent(Agent), pos(X1, Y1), pos(X2, Y2), block(Block1), block(Block2), Block1 \\= Block2],
+            [neg(at(_, X2, Y2))],
+            [],
+            [del(available(Agent)), del(clear(Block1)), del(on(Block1, Block2)), del(at(Block1, X1, Y1)), add(clear(Block2))],
+            [add(ontable(Block1)), add(at(Block1, X2, Y2)), add(clear(Block1)), add(available(Agent))],
+            [1, 3]
+          ).
+          hl_d_action(move_onblock_to_block(Agent, Block1, Block2, Block3, X1, Y1, X2, Y2),
+            [available(Agent), on(Block1, Block3), at(Block1, X1, Y1), at(Block2, X2, Y2), at(Block3, X1, Y1), clear(Block1), agent(Agent), pos(X1, Y1), pos(X2, Y2), block(Block1), block(Block2), block(Block3), Block1 \\= Block2, Block1 \\= Block3, Block2 \\= Block3],
+            [clear(Block2)],
+            [at(Block2, X2, Y2), at(Block3, X1, Y1)],
+            [del(available(Agent)), del(clear(Block1)), del(on(Block1, Block3)), del(at(Block1, X1, Y1)), add(clear(Block3))],
+            [del(clear(Block2)), add(on(Block1, Block2)), add(at(Block1, X2, Y2)), add(clear(Block1)), add(available(Agent))],
+            [1, 3]
+          ).
+          hl_d_action(place_architrave(Agent, Arch, Block1, Block2, FromArchX, FromArchY, ToArchX, ToArchY, Block1X, Block1Y, Block2X, Block2Y),
+            [available(Agent), ontable(Arch), at(Arch, FromArchX, FromArchY), clear(Arch), at(Block1, Block1X, Block1Y), at(Block2, Block2X, Block2Y), agent(Agent), architrave(Arch), block(Arch), block(Block1), block(Block2), pos(ToArchX, ToArchY), Arch \\= Block1, Arch \\= Block2, Block1 \\= Block2, FromArchX \\= ToArchX, FromArchY \\= ToArchY],
+            [neg(at(_, ToArchX, ToArchY)), clear(Block1), clear(Block2)],
+            [at(Block1, Block1X, Block1Y), at(Block2, Block2X, Block2Y)],
+            [del(available(Agent)), del(clear(Arch)), del(ontable(Arch)), del(at(Arch, FromArchX, FromArchY))],
+            [del(clear(Block1)), del(clear(Block2)), add(on(Arch, Block1)), add(on(Arch, Block2)), add(at(Arch, ToArchX, ToArchY)), add(clear(Arch)), add(available(Agent))],
+            [2, 5]
+          ).
+          ```
+
+          And given the low-level actions generated from the low-level description:
+
+          ```ll_actions
+          ll_d_action(
+            ll_move_arm(Agent, X1, Y1, Z1, X2, Y2, Z2),
+            [agent(Agent), pos(X1, Y1, Z1), ll_arm(Agent), ll_arm_at(Agent, X1, Y1, Z1)],
+            [neg(ll_arm_at(_, X2, Y2, Z2))],
+            [],
+            [del(ll_arm_at(Agent, X1, Y1, Z1))],
+            [add(ll_arm_at(Agent, X2, Y2, Z2))],
+            [1, 2]
+          ).
+
+          ll_d_action(
+            ll_close_gripper(Agent),
+            [agent(Agent), ll_gripper(Agent), ll_gripper(Agent, open)],
+            [],
+            [],
+            [del(ll_gripper(Agent, open))],
+            [add(ll_gripper(Agent, closed))],
+            [1, 2]
+          ).
+
+          ll_d_action(
+            ll_open_gripper(Agent),
+            [agent(Agent), ll_gripper(Agent), ll_gripper(Agent, closed)],
+            [],
+            [],
+            [del(ll_gripper(Agent, closed))],
+            [add(ll_gripper(Agent, open))],
+            [1, 2]
+          ).
+          ```
+
+          Consider the following description of the low-level aspect of the same problem.  
+          
+          Let the blocks be in the same position as the high-level description. 
+          The agents are robotics arm equipped with a gripper. At the beginning, the end-effector of the 
+          agents are in position (4,4) and (5,5) for agents a1, a2, respectively. Each agent has the following 
+          APIs:
+          - move_arm(Agent, x, y, z), which moves the end-effector to a position (x, y, z).
+          - close_gripper(Agent), which closes the gripper.
+          - open_gripper(Agent), which opens the gripper.
+          Remember that, while the blocks have to be left on the table, the architrave has to be placed higher.
+          Remember to use the appropriate tags for the code you produce and not to use prolog tags.
+
+          Can you find a mapping from the high-level actions to the low-level actions?
+
+      A:
+        role: 'assistant'
+        content: |
+          Sure 
+          ```mappings
+          mapping(move_table_to_table(Agent, Block, X1, Y1, X2, Y2),
+            [
+              ll_move_arm(Agent, _, _, _, X1, Y1, 0),
+              ll_close_gripper(Agent),
+              ll_move_arm(Agent, X1, Y1, 0, X2, Y2, 0),
+              ll_open_gripper(Agent)
+            ]
+          ).
+
+          mapping(move_table_to_block(Agent, _Block1, _Block2, X1, Y1, X2, Y2),
+            [
+              ll_move_arm(Agent, _, _, _, X1, Y1, 0),
+              ll_close_gripper(Agent),
+              ll_move_arm(Agent, X1, Y1, 0, X2, Y2, 1),
+              ll_open_gripper(Agent)
+            ]
+          ).
+
+          mapping(move_onblock_to_table(Agent, _Block, _FromBlock, X1, Y1, X2, Y2),
+            [
+              ll_move_arm(Agent, _, _, _, X1, Y1, 1),
+              ll_close_gripper(Agent),
+              ll_move_arm(Agent, X1, Y1, 1, X2, Y2, 0),
+              ll_open_gripper(Agent)
+            ]
+          ).
+
+          mapping(move_onblock_to_block(Agent, _Block1, _Block2, _Block3, X1, Y1, X2, Y2),
+            [
+              ll_move_arm(Agent, _, _, _, X1, Y1, 1),
+              ll_close_gripper(Agent),
+              ll_move_arm(Agent, X1, Y1, 1, X2, Y2, 1),
+              ll_open_gripper(Agent)
+            ]
+          ).
+
+          mapping(place_architrave(Agent, _Arch, _Block1, _Block2, FromArchX, FromArchY, ToArchX, ToArchY, _Block1X, _Block1Y, _Block2X, _Block2Y),
+            [
+              ll_move_arm(Agent, _, _, _, FromArchX, FromArchY, 0),
+              ll_close_gripper(Agent),
+              ll_move_arm(Agent, FromArchX, FromArchY, 0, ToArchX, ToArchY, 1),
+              ll_open_gripper(Agent)
+            ]
+          ).
+          ```
+          Notice that in the mappings, the first action to move the arm has as initial coordinates
+          the Prolog _, as we do not care for where the arm is in that moment, we will simply move 
+          it to the right place. In the second case instead, we know where the arm is and we can use
+          it. 

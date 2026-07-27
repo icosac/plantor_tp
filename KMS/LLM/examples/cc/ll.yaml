@@ -1,0 +1,199 @@
+# Copyright © University of Trento and DLR 2025.
+# This software is proprietary to the University of Trento and DLR. Use is permitted solely within
+# the Horizon Europe project “INVERSE” (Grant Agreement ID: 101136067).
+# This license does not override any rights or obligations established in the Grant Agreement.
+# Redistribution or use outside the project is prohibited.
+
+entries:
+  system_msg:
+    role: 'system'
+    content: "You are a helpful assistant. Your role is to do a consistency check on the description
+      of the environment, which is divided in high-level, low-level and a combination of the two. 
+      Some examples are provided to aid you, please follow them. Think silently.
+      Return a verdict (OK or PROBLEM) and a short explanation."
+      # Do not output chain-of-thought or step-by-step reasoning."
+    
+  convo:
+    ############################################################################
+    ###############################     0     ##################################
+    ############################################################################
+    # 0: 
+    #   Q:
+    #     role: 'user'
+    #     content: | 
+    #       Consider the following low-level description of a scenario. State if this scenario is 
+    #       feasible or not. Please write OK if it is, PROBLEM, if it is not. Also describe you 
+    #       thought process. Given an initial state in which there are two blocks b1, b2 in position 
+    #       (1,1) and (2,2) respectively, move the block b1 on the table to position (3,3) and place 
+    #       b2 on top of b1 using 2 agents, which are initially available and it will also be 
+    #       available at the end. The agents are robotics arm that can pick and move objects around. 
+    #       The initial positions of the arms are (0,0) and (10,10), while it does not matter where 
+    #       they are at the end.
+
+    #   A:
+    #     role : 'assistant'
+    #     content: |
+    #       OK. The scenario is feasible. The description provides details on the agents stating that 
+    #       they are robotics arms able to move the blocks. The initial position of the arms is given, 
+    #       while it is specified that at the end it does not matter where they are. 
+    #       Also the blocks are in feasible positions both at the beginning and at the end of the
+    #       scenario.
+
+
+    ############################################################################
+    ###############################     1     ##################################
+    ############################################################################
+    1: 
+      Q:
+        role: 'user'
+        content: | 
+          Consider the following low-level description of a scenario. State if this scenario is
+          feasible or not. Please write OK if it is, PROBLEM if it is not. Provide one short explanation sentence only.
+          Do not describe your thought process. Given an initial state in which there are two blocks b1, b2 in position
+          (1,1) and (2,2) respectively, move the block b1 to position (3,3) and place b2 on top of
+          b1 using 2 agents, which are initially available and it will also be available at the end.
+          The agents are robotics arm that can pick and move objects around. The initial positions
+          of the arms are (0,0) and (0,0), while it does not matter where they are at the end.  
+
+      A:
+        role : 'assistant'
+        content: |
+          PROBLEM. The scenario is not feasible. The description states that the two arms would 
+          start from the same position, which is not possible. 
+
+
+    ############################################################################
+    ###############################     2     ##################################
+    ############################################################################
+    2: 
+      Q:
+        role: 'user'
+        content: | 
+          Consider the following low-level description of a scenario. State if this scenario is
+          feasible or not. Please write OK if it is, PROBLEM if it is not. Provide one short explanation sentence only.
+          Do not describe your thought process. Given an initial state in which there are two blocks b1, b2 in position
+          (1,1) and (2,2) respectively, move the block b1 to position (3,3) and place b2 on top of
+          b1 using 1 agent, which is initially available and it will also be available at the end.
+          The agent is a car-like robot. Its initial position is (0,0) and it does not matter where
+          they are at the end.
+
+      A:
+        role : 'assistant'
+        content: |
+          PROBLEM. The scenario is not feasible. The description states that the agent is a 
+          car-like robot. This type of agent is not able to pick and move objects around.
+
+
+    ############################################################################
+    ###############################     3     ##################################
+    ############################################################################
+    # 3: 
+    #   Q:
+    #     role: 'user'
+    #     content: | 
+    #       Consider the following low-level description of a scenario. State if this scenario is 
+    #       feasible or not. Please write OK if it is, PROBLEM, if it is not. Also describe you 
+    #       thought process. 
+    #       There are 3 blocks on a table. In the initial state of the simulation, block b1 is in 
+    #       position (1,1), block b2 is in position (2,2), block b3 is in position (3,3). After the 
+    #       execution of the plan, b1 and b2 are in the same positions as in the initial state, 
+    #       whereas b3 has been moved on top of b1. The positions are taken from a 10x10 grid which 
+    #       represents the table seen from above. 
+    #       There are two available agents that can carry out the task. They are available at the 
+    #       beginning and will be available at the end. The agents are actually robotic arms that can 
+    #       pick up blocks and move them around. At the beginning, the arms are in positions (0,0) and 
+    #       (10,10), respectively, while we do not care were they are at the end.
+
+    #   A:
+    #     role : 'assistant'
+    #     content: |
+    #       OK.
+    #       The scenario is consistent. At the beginning the blocks are distributed on the table in
+    #       valid positions. Also at the end, b3 is stated to be on top of b1, which is a feasible 
+    #       since no other block is impeding this and block b1 is directly on the table. The two
+    #       blocks are correctly sharing the same position on the grid as they are one on top of the 
+    #       other. The agents are available both at the beginning and at the end and they are stated 
+    #       to be robotic arms allowing them to pick up and place the blocks. The initial positions of 
+    #       the arms are given and it is stated that at the end it does not matter where they are.
+
+
+    ############################################################################
+    ###############################     4     ##################################
+    ############################################################################
+    4: 
+      Q:
+        role: 'user'
+        content: | 
+          Given the following high-level description of a scenario. 
+          There are 7 blocks on a table. In the initial state of the simulation, block b1 is in
+          position (2,2), block b2 is in position (4,4), block b4 is in position (8,8). Block b5 is
+          on top of block b1 in position (2,2) and block b3 is on top of block b2 in position
+          (4,4). After moving the blocks around during the simulation, at the end, we have b5 on
+          top of block b4, both in position (8,8), and the remaining blocks b1, b2 and b3 are in the
+          same positions as in the initial state. The position of other blocks, such as b6, is
+          irrelevant at the moment and can be considered as random positions on the table. Please
+          explicitly assign these positions when generating the knowledge base.
+          There are 8 agents with a robotic arm. 
+          The agents can:
+          - Move a block from a position on the table to another position on the table. At the
+          beginning, the block must be free, i.e., there is no other block on top of it, and the
+          agent must be available. At the end, the final position on the table must still be free,
+          i.e., there are no blocks occupying it. After the execution of the action, the agent is
+          available again, the block is in the new position. The previous position has been freed as
+          soon as the  action starts. 
+          - Move a block B1 from a position on the table, to the top of another block B2. At the
+            beginning, the B1 must be free and the agent must be available. To complete the action,
+            B2 must be free. At the end, B1 is on top of B2, and the agent is available again. The
+            previous position of B1 has been freed as soon as the action starts.
+          - Move a block B1 from the top of another block B2 to the table. At the beginning, B1 must
+            be on top of B2, B1 must be free and the agent must be available. At the end, B1 is on
+            the table in a new position, and the agent is available again. B2 becomes free (since
+            the block it had on top has been removed) as soon as the action starts.
+          - Move a block B1 from the top of another block B2 to the top of another block B3. At the
+            beginning, B1 must be on top of B2, B1 must be free and the agent must be available. To
+            complete the action, B3 must be free, i.e., not have any other block on top of it. At
+            the end, B1 is on top of B3, and the agent is available again. B2 becomes free as soon
+            as the action starts.
+          
+          Consider the following low-level description of the same scenario. State if this scenario 
+          is feasible or not. Please write OK if it is, PROBLEM if it is not. Provide one short explanation sentence only.
+          Do not describe your thought process.
+          Let the blocks and their positions be described in the high-level part.
+          There are eight available agents that can carry out the task. They are available at the 
+          beginning and will be available at the end. The agents are actually robotic arms that can 
+          pick up blocks and move them around. At the beginning, the arms are in positions (0,0), 
+          (1,1), (10,2), (3,3), (4,4), (5,5), (6,6) and (7,7), respectively, while we do not care 
+          were they are at the end. The low_level action they can perform are:
+          - move_arm_start(arm, x1, y1, x2, y2), which makes the robotic arm starting to move from 
+            position (x1,y1) to position (x2,y2).
+          - move_arm_end(arm, x1, y1, x2, y2), which completes the movement of the robotic arm from 
+            position (x1,y1) to position (x2,y2).
+          - close_start(arm), which makes the gripper starting to close.
+          - close_end(arm), which indicates the gripper has closed.
+          - open_start(arm), which makes the gripper starting to open.
+          - open_end(arm), which indicates the gripper has opened.
+
+      A:
+        role : 'assistant'
+        content: |
+          OK.
+          The scenario is consistent. 
+
+    ############################################################################
+    ###############################     5     ##################################
+    ############################################################################
+    5: 
+      Q:
+        role: 'user'
+        content: | 
+          Should I care about matching the high-level and low-level action duration? For example, 
+          if a high-level action takes 3-15 time units and the low-level actions take 3-5, should
+          I raise a warning? 
+
+      A:
+        role: 'assistant'
+        content: |
+          OK.
+          Different high-level and low-level action durations are acceptable because low-level actions may
+          decompose abstract high-level actions.
+

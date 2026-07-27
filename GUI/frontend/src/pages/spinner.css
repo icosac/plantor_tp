@@ -1,0 +1,36 @@
+.spinner-button-container {
+    display: flex;
+    align-items: center; /* Vertically center the spinner and button */
+    justify-content: center; /* Horizontally center the spinner and button */
+}
+
+.spinner-with-text {
+    display: flex;
+    flex-direction: column; /* Stack the spinner and text vertically */
+    align-items: center; /* Center both spinner and text horizontally */
+    margin-right: 10px; /* Add space between spinner-text group and button */
+}
+
+.spinner {
+    width: 30px;
+    height: 30px;
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    border-top: 4px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.loading-text {
+    margin-top: 8px; /* Add space between spinner and text */
+    font-size: 14px; /* Adjust font size as needed */
+    color: #6c757d; /* Optional: Gray text color */
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}

@@ -1,0 +1,50 @@
+# Copyright © University of Trento and DLR 2025.
+# This software is proprietary to the University of Trento and DLR. Use is permitted solely within
+# the Horizon Europe project “INVERSE” (Grant Agreement ID: 101136067).
+# This license does not override any rights or obligations established in the Grant Agreement.
+# Redistribution or use outside the project is prohibited.
+
+entries:
+  convo:
+    ############################################################################
+    ###############################     0     ##################################
+    ############################################################################
+    0:
+      Q:
+        role: 'user'
+        content: |
+          Consider the following high-level description:
+          A robot can move a block from a position (X1, Y1) on the table to another position 
+          (X2, Y2) on the table. To do so, the block must be clear, i.e., there is no other block on
+          top of it, and it must be on the table. Also, the robot doing the action must be free.
+          The duration of the action is between 10 and 30 time units. 
+          Is this high-level action correct?
+          ```actions
+          hl_d_action(
+            move_table_to_table(Agent, Block, X1, Y1, X2, Y2),
+            [ontable(Block), at(Block, X1, Y1), available(Agent)],
+            [],
+            [],
+            [del(at(Block, X1, Y1))],
+            [add(at(Block, X2, Y2))],
+            [10, 30]
+          ).
+          ```
+      A:
+        role: 'assistant'
+        content: |
+          Not fully. It is missing `clear(Block)` in the start preconditions and it does not update
+          agent availability and table predicates consistently.
+
+          A corrected version is:
+          ```actions
+          hl_d_action(
+            move_table_to_table(Agent, Block, X1, Y1, X2, Y2),
+            [ontable(Block), at(Block, X1, Y1), available(Agent), clear(Block), agent(Agent), pos(X1, Y1), pos(X2, Y2), block(Block)],
+            [neg(at(_, X2, Y2))],
+            [],
+            [del(available(Agent)), del(clear(Block)), del(ontable(Block)), del(at(Block, X1, Y1))],
+            [add(available(Agent)), add(clear(Block)), add(ontable(Block)), add(at(Block, X2, Y2))],
+            [10, 30]
+          ).
+          ```

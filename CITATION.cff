@@ -1,0 +1,71 @@
+cff-version: 1.2.0
+message: >-
+  If you use this software, please cite it using the metadata from this file.
+title: >-
+  PLANTOR: PLanning with Natural Language for Task-Oriented Robots
+type: software
+version: 1.0.0
+license: Apache-2.0
+abstract: >-
+  PLANTOR is a modular framework for generating and executing multi-robot task plans from natural-language task descriptions through LLM-assisted knowledge-base construction. The approach uses large language models to synthesize a structured Prolog knowledge-base, applies consistency checks to detect and repair modeling errors, generates a high-level symbolic plan, refines it into low-level robot actions, and computes a temporally optimized schedule that is converted into an executable behavior tree. The framework is designed to preserve inspectability by exposing the generated knowledge-base, intermediate plans, and scheduling constraints. We evaluate the approach on scenarios inspired from the Blocks World and Grippers benchmark across multiple language models, and we report both the quality of generated knowledge-bases and the runtime of the planning pipeline. We further demonstrate end-to-end execution in a real multi-arm assembly scenario. The results show that LLM-generated knowledge-base can substantially reduce manual modeling effort, but may still require human correction. Overall, the paper argues for a hybrid workflow in which language models are used to produce structured symbolic artifacts, while correctness-critical planning and scheduling remain symbolic and inspectable.
+authors:
+  - family-names: Saccon
+    given-names: Enrico
+    email: enrico.saccon@unitn.it
+    affiliation: University of Trento
+  - family-names: Saveriano
+    given-names: Matteo
+    email: matteo.saveriano@unitn.it
+    affiliation: University of Trento
+  - family-names: Lamon
+    given-names: Edoardo
+    email: edoardo.lamon@unitn.it
+    affiliation: University of Trento
+  - family-names: Palopoli
+    given-names: Luigi
+    email: luigi.palopoli@unitn.it
+    affiliation: University of Trento
+  - family-names: Roveri
+    given-names: Marco
+    email: marco.roveri@unitn.it
+    affiliation: University of Trento
+contact:
+  - family-names: Saccon
+    given-names: Enrico
+    email: enrico.saccon@unitn.it
+    affiliation: University of Trento
+keywords:
+  - robotics
+  - task planning
+  - temporal planning
+  - large language models
+  - knowledge bases
+  - logic programming
+  - behavior trees
+  - multi-robot systems
+preferred-citation:
+  type: article
+  title: "A Temporal Planning Framework for Multi-Agent Systems via LLM-Aided Knowledge Base Management"
+  authors:
+    - family-names: Saccon
+      given-names: Enrico
+    - family-names: Tikna
+      given-names: Ahmet
+    - family-names: De Martini
+      given-names: Davide
+    - family-names: Lamon
+      given-names: Edoardo
+    - family-names: Palopoli
+      given-names: Luigi
+    - family-names: Roveri
+      given-names: Marco
+  year: 2025
+  url: "https://arxiv.org/abs/2502.19135"
+references:
+  - type: data
+    title: "Experimental Results and Artifacts for \"Combining Large Language Models and Symbolic Reasoning for Multi-Robot Temporal Planning through Explainable Knowledge Bases\"”
+    authors:
+      - family-names: Saccon
+        given-names: Enrico
+    doi: "10.5281/zenodo.21630757"
+    year: 2026

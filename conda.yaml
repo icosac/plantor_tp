@@ -1,0 +1,10 @@
+name: plantor_tp
+channels:
+  - conda-forge
+dependencies:
+  - python=3.9
+  - cmake 
+  - swi-prolog
+  - pip
+  - pip:
+    - -r requirements-pip.txt

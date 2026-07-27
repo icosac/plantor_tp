@@ -1,0 +1,15 @@
+# Frontend Dockerfile
+FROM node:18
+
+WORKDIR /app
+
+# Install deps first for build-layer caching.
+COPY GUI/frontend/package*.json /app/
+RUN npm install
+
+# Keep a full source copy in the image; docker-compose bind mounts will override in dev.
+COPY GUI/frontend /app
+
+EXPOSE 3000
+
+CMD ["npm", "start"]

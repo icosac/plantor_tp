@@ -1,0 +1,217 @@
+# Copyright © University of Trento and DLR 2025.
+# This software is proprietary to the University of Trento and DLR. Use is permitted solely within
+# the Horizon Europe project “INVERSE” (Grant Agreement ID: 101136067).
+# This license does not override any rights or obligations established in the Grant Agreement.
+# Redistribution or use outside the project is prohibited.
+
+entries:
+  convo:
+    ###########################################################################
+    ##############################     1     ##################################
+    ###########################################################################
+    1:
+      Q:
+        role: 'user'
+        content: |
+          Can you generate a prolog code including a set of actions in order for an agent to move a
+          block that is on a position on the table to another position on the table of the duration 
+          between 5 and 20 time units?
+      A:
+        role : 'assistant'
+        content: |
+          Sure, here is the Prolog code:
+          ```actions
+          hl_d_action(
+            move_block_table_to_table(Agent, Block, X1, Y1, X2, Y2),
+            [ontable(Block), at(Block, X1, Y1), available(Agent), clear(Block), pos(X1, Y1), pos(X2, Y2), block(Block), agent(Agent)],
+            [neg(at(_, X2, Y2))],
+            [],
+            [del(available(Agent)), del(clear(Block)), del(at(Block, X1, Y1)), del(ontable(Block))],
+            [add(available(Agent)), add(at(Block, X2, Y2)), add(ontable(Block)), add(clear(Block))],
+            [5, 20]
+          ).
+          ```
+          The action removes occupancy and availability at start, then restores them at end in the
+          target position.
+
+    ###########################################################################
+    ##############################     2     ##################################
+    ###########################################################################
+    2:
+      Q:
+        role: 'user'
+        content: |
+          Can you generate the code for the actions that can be done by the agents in this scenario?
+          The agents can:
+          - move a block from a position on the table to another position on the table, with duration between 3 and 21 time units.
+          - move a block from a position on the table to the top of another block, with duration between 3 and 21 time units.
+          - move a block from the top of a block to a position on the table, with duration between 3 and 21 time units.
+          - move a block from the top of a block to the top of another block, with duration between 3 and 21 time units.
+      A:
+        role: 'assistant'
+        content: |
+          Sure, here is the description of the actions
+          ```actions
+          hl_d_action(
+            move_table_to_block(Agent, Block1, Block2, X1, Y1, X2, Y2),
+            [available(Agent), ontable(Block1), at(Block1, X1, Y1), at(Block2, X2, Y2), clear(Block1), agent(Agent), pos(X1, Y1), pos(X2, Y2), block(Block1), block(Block2), Block1 \= Block2],
+            [clear(Block2)],
+            [at(Block2, X2, Y2)],
+            [del(available(Agent)), del(clear(Block1)), del(ontable(Block1)), del(at(Block1, X1, Y1))],
+            [del(clear(Block2)), add(on(Block1, Block2)), add(at(Block1, X2, Y2)), add(clear(Block1)), add(available(Agent))],
+            [3, 21]
+          ).
+
+          hl_d_action(
+            move_table_to_table(Agent, Block, X1, Y1, X2, Y2),
+            [ontable(Block), at(Block, X1, Y1), available(Agent), clear(Block), agent(Agent), pos(X1, Y1), pos(X2, Y2), block(Block)],
+            [neg(at(_, X2, Y2))],
+            [],
+            [del(available(Agent)), del(clear(Block)), del(ontable(Block)), del(at(Block, X1, Y1))],
+            [add(ontable(Block)), add(at(Block, X2, Y2)), add(clear(Block)), add(available(Agent))],
+            [3, 21]
+          ).
+
+          hl_d_action(
+            move_onblock_to_table(Agent, Block1, Block2, X1, Y1, X2, Y2),
+            [available(Agent), on(Block1, Block2), at(Block1, X1, Y1), at(Block2, X1, Y1), clear(Block1), agent(Agent), pos(X1, Y1), pos(X2, Y2), block(Block1), block(Block2), Block1 \= Block2],
+            [neg(at(_, X2, Y2))],
+            [],
+            [del(available(Agent)), del(clear(Block1)), del(on(Block1, Block2)), del(at(Block1, X1, Y1)), add(clear(Block2))],
+            [add(ontable(Block1)), add(at(Block1, X2, Y2)), add(clear(Block1)), add(available(Agent))],
+            [3, 21]
+          ).
+
+          hl_d_action(
+            move_onblock_to_block(Agent, Block1, Block2, Block3, X1, Y1, X2, Y2),
+            [available(Agent), on(Block1, Block3), at(Block1, X1, Y1), at(Block3, X1, Y1), at(Block2, X2, Y2), clear(Block1), agent(Agent), pos(X1, Y1), pos(X2, Y2), block(Block1), block(Block2), block(Block3), Block1 \= Block2, Block1 \= Block3, Block2 \= Block3],
+            [clear(Block2)],
+            [at(Block2, X2, Y2)],
+            [del(available(Agent)), del(clear(Block1)), del(on(Block1, Block3)), del(at(Block1, X1, Y1)), add(clear(Block3))],
+            [del(clear(Block2)), add(on(Block1, Block2)), add(at(Block1, X2, Y2)), add(clear(Block1)), add(available(Agent))],
+            [3, 21]
+          ).
+          ```
+          The destination block's position is an overall condition, while its clearness is checked at end to allow concurrent actions to clear it.
+
+
+    ############################################################################
+    ###############################     3     ##################################
+    ############################################################################
+    3:
+      Q:
+        role: 'user'
+        content: |
+          In this scenario, we want to construct an arch using 3 blocks and a robotic arm. The blocks are
+          initially distributed on the table in positions (32,60), (113,83), and (44,40). Blocks b1 and b2 have 
+          dimensions 1x1x1 whereas b3 is longer and is considered as an architrave. The goal is to move
+          the two support blocks b1 and b2 to positions (86,52) and (72,52), respectively, and place b3 on top of 
+          them as an architrave in position (79, 52). There are two agents that can:
+          - from a position on the table to another position on the table, with duration between 3 and 21 time units;
+          - from a position on the table, to the top of another block, with duration between 3 and 21 time units;
+          - from the top of a block, to a position on the table, with duration between 3 and 21 time units;
+          - from the top of a block, to the top of another block, with duration between 3 and 21 time units.
+          The action to place the last block on top as an architrave should be handled differently than these 
+          moves as it must check that the two support blocks are at their target positions and clear. Its duration is between 2 and 35 time units.
+          The agents are available and can be used. The blocks are initially free and can be moved by the agents.
+          Moreover, the initial and final states and the knowledge base extracted before are the following:
+          ```KB
+          % Positions
+          pos(32,60).
+          pos(113,83).
+          pos(44,40).
+          pos(86,52).
+          pos(72,52).
+          pos(79,52).
+
+          % Blocks
+          block(b1).
+          block(b2).
+          block(b3).
+          architrave(b3).
+
+          % Agents
+          agent(a1).
+          agent(a2).
+
+          % Resources
+          resources(agent(_)).
+          ```
+          ```init
+          init_state([
+            ontable(b1), ontable(b2), ontable(b3),
+            at(b1,32,60), at(b2,113,83), at(b3,44,40),
+            clear(b1), clear(b2), clear(b3),
+            available(a1), available(a2)
+          ]).
+          ```
+          ```goal
+          goal_state([
+            ontable(b1), ontable(b2),
+            on(b3, b1), on(b3, b2),
+            at(b1,86,52), at(b2,72,52), at(b3,79,52),
+            clear(b3),
+            available(a1), available(a2)
+          ]).
+          ```
+          Can you provide the set of actions?
+      A:
+        role: 'assistant'
+        content: |
+          ```actions
+          % Move a block from a position on the table to another position on the table
+          hl_d_action(
+            move_table_to_table(Agent, Block, X1, Y1, X2, Y2),
+            [ontable(Block), at(Block, X1, Y1), available(Agent), clear(Block), agent(Agent), pos(X1, Y1), pos(X2, Y2), block(Block), X1\=X2, Y1\=Y2],
+            [neg(at(_, X2, Y2))],
+            [],
+            [del(available(Agent)), del(clear(Block)), del(ontable(Block)), del(at(Block, X1, Y1))],
+            [add(ontable(Block)), add(at(Block, X2, Y2)), add(clear(Block)), add(available(Agent))],
+            [3, 21]
+          ).
+
+          % Move a block from a position on the table to the top of another block
+          hl_d_action(
+            move_table_to_block(Agent, Block1, Block2, X1, Y1, X2, Y2),
+            [available(Agent), ontable(Block1), at(Block1, X1, Y1), at(Block2, X2, Y2), clear(Block1), agent(Agent), pos(X1, Y1), pos(X2, Y2), block(Block1), block(Block2), Block1 \= Block2],
+            [clear(Block2)],
+            [at(Block2, X2, Y2)],
+            [del(available(Agent)), del(clear(Block1)), del(ontable(Block1)), del(at(Block1, X1, Y1))],
+            [del(clear(Block2)), add(on(Block1, Block2)), add(at(Block1, X2, Y2)), add(clear(Block1)), add(available(Agent))],
+            [3, 21]
+          ).
+
+          % Move a block from the top of another block to a position on the table
+          hl_d_action(
+            move_onblock_to_table(Agent, Block1, Block2, X1, Y1, X2, Y2),
+            [available(Agent), on(Block1, Block2), at(Block1, X1, Y1), at(Block2, X1, Y1), clear(Block1), agent(Agent), pos(X1, Y1), pos(X2, Y2), block(Block1), block(Block2), Block1 \= Block2],
+            [neg(at(_, X2, Y2))],
+            [],
+            [del(available(Agent)), del(clear(Block1)), del(on(Block1, Block2)), del(at(Block1, X1, Y1)), add(clear(Block2))],
+            [add(ontable(Block1)), add(at(Block1, X2, Y2)), add(clear(Block1)), add(available(Agent))],
+            [3, 21]
+          ).
+
+          % Move a block from the top of another block to the top of another block
+          hl_d_action(
+            move_onblock_to_block(Agent, Block1, Block2, Block3, X1, Y1, X2, Y2),
+            [available(Agent), on(Block1, Block3), at(Block1, X1, Y1), at(Block2, X2, Y2), at(Block3, X1, Y1), clear(Block1), agent(Agent), pos(X1, Y1), pos(X2, Y2), block(Block1), block(Block2), block(Block3), Block1 \= Block2, Block1 \= Block3, Block2 \= Block3],
+            [clear(Block2)],
+            [at(Block2, X2, Y2), at(Block3, X1, Y1)],
+            [del(available(Agent)), del(clear(Block1)), del(on(Block1, Block3)), del(at(Block1, X1, Y1)), add(clear(Block3))],
+            [del(clear(Block2)), add(on(Block1, Block2)), add(at(Block1, X2, Y2)), add(clear(Block1)), add(available(Agent))],
+            [3, 21]
+          ).
+          % The destination block's position is an overall condition, while its clearness is checked at end to allow concurrent actions to clear it.
+
+          % Place the architrave on top of the two support blocks
+          hl_d_action(
+            place_architrave(Agent, Arch, Block1, Block2, FromArchX, FromArchY, ToArchX, ToArchY, Block1X, Block1Y, Block2X, Block2Y),
+            [available(Agent), ontable(Arch), at(Arch, FromArchX, FromArchY), clear(Arch), at(Block1, Block1X, Block1Y), at(Block2, Block2X, Block2Y), agent(Agent), architrave(Arch), block(Arch), block(Block1), block(Block2), pos(ToArchX, ToArchY), Arch \= Block1, Arch \= Block2, Block1 \= Block2, FromArchX \= ToArchX, FromArchY \= ToArchY],
+            [neg(at(_, ToArchX, ToArchY)), clear(Block1), clear(Block2)],
+            [at(Block1, Block1X, Block1Y), at(Block2, Block2X, Block2Y)],
+            [del(available(Agent)), del(clear(Arch)), del(ontable(Arch)), del(at(Arch, FromArchX, FromArchY))],
+            [del(clear(Block1)), del(clear(Block2)), add(on(Arch, Block1)), add(on(Arch, Block2)), add(at(Arch, ToArchX, ToArchY)), add(clear(Arch)), add(available(Agent))],
+            [2, 35]
+          ).
+          ```

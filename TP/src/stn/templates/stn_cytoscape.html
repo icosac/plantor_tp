@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>__TITLE_ESCAPED__</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f7fb;
+      color: #1f2937;
+    }
+    .page {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      min-height: 100vh;
+    }
+    .sidebar {
+      padding: 16px;
+      border-right: 1px solid #d0d7de;
+      background: #ffffff;
+      overflow-y: auto;
+    }
+    .title {
+      font-size: 20px;
+      margin: 0 0 6px;
+    }
+    .muted {
+      color: #4b5563;
+      font-size: 13px;
+    }
+    .section {
+      margin-top: 14px;
+      padding-top: 10px;
+      border-top: 1px solid #e5e7eb;
+    }
+    .section h2 {
+      margin: 0 0 8px;
+      font-size: 14px;
+    }
+    .legend-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #374151;
+    }
+    .swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      border: 1px solid #374151;
+      display: inline-block;
+    }
+    .swatch-line {
+      width: 16px;
+      height: 0;
+      border-top: 3px solid #64748b;
+      display: inline-block;
+    }
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .control {
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 13px;
+      color: #0f172a;
+      background: #ffffff;
+    }
+    .control:focus {
+      outline: 2px solid #bfdbfe;
+      outline-offset: 1px;
+    }
+    .check-list {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #374151;
+    }
+    .check-item input {
+      margin: 0;
+    }
+    .btn {
+      border: 1px solid #c7d2fe;
+      background: #eef2ff;
+      color: #1e3a8a;
+      padding: 6px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    #details {
+      font-size: 13px;
+      line-height: 1.35;
+      white-space: pre-wrap;
+    }
+    .graph-wrap {
+      display: grid;
+      min-height: 100vh;
+      background: #ffffff;
+    }
+    .graph-wrap.timeline-graph {
+      grid-template-rows: 90px 1fr;
+    }
+    #timeline {
+      border-bottom: 1px solid #d0d7de;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      overflow: hidden;
+    }
+    #timeline svg {
+      display: block;
+      width: 100%;
+      height: 64px;
+    }
+    #cy {
+      width: 100%;
+      height: 100%;
+      background: #ffffff;
+    }
+    .action-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 280px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .action-item {
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+    }
+    .action-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #0f172a;
+      margin-bottom: 4px;
+    }
+    .action-times {
+      font-size: 12px;
+      color: #475569;
+      line-height: 1.35;
+    }
+    @media (max-width: 980px) {
+      .page {
+        grid-template-columns: 1fr;
+      }
+      .sidebar {
+        border-right: none;
+        border-bottom: 1px solid #d0d7de;
+        max-height: none;
+      }
+      .graph-wrap {
+        min-height: auto;
+      }
+      .graph-wrap.timeline-graph {
+        grid-template-rows: 90px 70vh;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <aside class="sidebar">
+      <h1 class="title">__TITLE_ESCAPED__</h1>
+      <div class="muted">Interactive visualization of the generated STN.</div>
+      <div class="section">
+        <h2>Summary</h2>
+        <div>Nodes shown: __VISIBLE_NODES_COUNT__ / __TOTAL_NODES_COUNT__</div>
+        <div>Edges shown: __VISIBLE_EDGES_COUNT__ / __TOTAL_EDGES_COUNT__</div>
+        __SUMMARY_TIME_HTML__
+      </div>
+      <div class="section">
+        <h2>Node Colors</h2>
+        <div class="legend-list">
+          <div class="legend-item"><span class="swatch" style="background:__HL_START_COLOR__"></span>HL start timepoint</div>
+          <div class="legend-item"><span class="swatch" style="background:__HL_END_COLOR__"></span>HL end timepoint</div>
+          <div class="legend-item"><span class="swatch" style="background:__LL_START_COLOR__"></span>LL start timepoint</div>
+          <div class="legend-item"><span class="swatch" style="background:__LL_END_COLOR__"></span>LL end timepoint</div>
+          <div class="legend-item"><span class="swatch" style="background:__OTHER_NODE_COLOR__"></span>Boundary/other node (INIT, END, unknown)</div>
+        </div>
+      </div>
+      <div class="section">
+        <h2>Edge Colors</h2>
+        <div class="legend-list">
+          <div class="legend-item"><span class="swatch-line" style="border-top-color:__ASSUMPTION_EDGE_COLOR__"></span>Ordering edge (assumption palette)</div>
+          <div class="legend-item"><span class="swatch-line" style="border-top-color:__CAUSAL_EDGE_COLOR__"></span>Causal-link edge</div>
+          <div class="legend-item"><span class="swatch-line" style="border-top-color:__OTHER_EDGE_COLOR__"></span>Temporal/default constraint</div>
+        </div>
+      </div>
+      <div class="section">
+        <h2>Edge Filters</h2>
+        <div class="check-list">
+          __EDGE_FILTERS_HTML__
+        </div>
+      </div>
+      <div class="section">
+        <h2>Search</h2>
+        <input id="search" class="control" type="text" placeholder="Search node id, label, action, edge">
+      </div>
+      <div class="section">
+        <h2>Layout</h2>
+        <div class="btn-row">
+          __TIMELINE_BUTTON_HTML__
+          <button class="btn" id="layoutDagre">Dagre</button>
+          <button class="btn" id="layoutElk">ELK (layered)</button>
+          <button class="btn" id="layoutBreadth">Breadthfirst</button>
+          <button class="btn" id="layoutCose">Force-directed</button>
+          <button class="btn" id="fit">Fit</button>
+        </div>
+      </div>
+      __OPTIMIZED_ACTIONS_SECTION_HTML__
+      <div class="section">
+        <h2>Details</h2>
+        <div id="details">__DEFAULT_DETAILS_ESCAPED__</div>
+      </div>
+    </aside>
+    <main class="__GRAPH_WRAP_CLASS__">
+      __TIMELINE_PANEL_HTML__
+      <div id="cy"></div>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/cytoscape@3.26.0/dist/cytoscape.min.js"></script>
+  <script src="https://unpkg.com/dagre@0.8.5/dist/dagre.min.js"></script>
+  <script src="https://unpkg.com/cytoscape-dagre@2.5.0/cytoscape-dagre.js"></script>
+  <script src="https://unpkg.com/elkjs/lib/elk.bundled.js"></script>
+  <script src="https://unpkg.com/cytoscape-elk/cytoscape-elk.js"></script>
+  <script>
+__INLINE_SCRIPT__
+  </script>
+</body>
+</html>

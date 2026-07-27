@@ -1,0 +1,40 @@
+# Backend Dockerfile
+FROM ubuntu:22.04
+
+RUN apt-get update
+RUN apt-get -y install software-properties-common
+RUN apt-add-repository ppa:swi-prolog/stable
+RUN apt-get update
+RUN apt-get -y install swi-prolog python3 python3-pip iputils-ping
+RUN apt-get -y install python3-dev graphviz libgraphviz-dev pkg-config
+
+WORKDIR /app
+
+COPY ./TP/prolog_planner/tools/requirements.txt ./TP/prolog_planner/tools/requirements.txt
+COPY ./TP/requirements-pip.txt ./TP/requirements-pip.txt
+COPY ./GUI/backend/requirements.txt ./GUI/backend/requirements.txt
+COPY ./docs/requirements.txt ./docs/requirements.txt
+COPY ./KMS/LLM/LLMGemini/requirements-pip.txt ./KMS/LLM/LLMGemini/requirements-pip.txt
+COPY ./KMS/LLM/LLMGLM/requirements-pip.txt ./KMS/LLM/LLMGLM/requirements-pip.txt
+COPY ./KMS/LLM/LLMHuggingFace/requirements-pip.txt ./KMS/LLM/LLMHuggingFace/requirements-pip.txt
+COPY ./KMS/LLM/LLMAnthropic/requirements-pip.txt ./KMS/LLM/LLMAnthropic/requirements-pip.txt
+COPY ./KMS/LLM/requirements-pip.txt ./KMS/LLM/requirements-pip.txt
+COPY ./KMS/LLM/LLMAzureOpenAI/requirements-pip.txt ./KMS/LLM/LLMAzureOpenAI/requirements-pip.txt
+COPY ./KMS/LLM/LLMOpenAI/requirements-pip.txt ./KMS/LLM/LLMOpenAI/requirements-pip.txt
+COPY ./requirements-pip.txt ./requirements-pip.txt
+COPY ./MP/requirements-pip.txt ./MP/requirements-pip.txt
+
+# Install Python dependencies
+RUN python3 -m pip install --no-cache-dir loguru
+RUN python3 -m pip install --no-cache-dir -r /app/KMS/LLM/requirements-pip.txt
+RUN python3 -m pip install --no-cache-dir -r /app/TP/requirements-pip.txt
+RUN python3 -m pip install --no-cache-dir -r /app/GUI/backend/requirements.txt
+
+# Expose the backend port
+EXPOSE 5000
+
+# Change the working directory
+WORKDIR /app/GUI/backend/
+
+# Start the Flask server
+CMD ["python3", "run.py", "-d"]

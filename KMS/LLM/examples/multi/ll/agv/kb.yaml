@@ -1,0 +1,120 @@
+# Copyright © University of Trento and DLR 2025.
+# This software is proprietary to the University of Trento and DLR. Use is permitted solely within
+# the Horizon Europe project “INVERSE” (Grant Agreement ID: 101136067).
+# This license does not override any rights or obligations established in the Grant Agreement.
+# Redistribution or use outside the project is prohibited.
+
+entries:
+  convo:
+    ############################################################################
+    ###############################     0     ##################################
+    ############################################################################
+    0:
+      Q:
+        role: 'user'
+        content: |
+          Given the high-level knowledge base obtained from the high-level description:
+          ```kb
+          room(room_a).
+          room(room_b).
+          room(room_c).
+          room(room_d).
+          room(room_e).
+          room(room_f).
+          room(corridor).
+
+          door(door_a, room_a, corridor).
+          door(door_b, room_b, corridor).
+          door(door_c, room_c, corridor).
+          door(door_d, room_d, corridor).
+          door(door_e, room_e, corridor).
+          door(door_f, room_f, corridor).
+
+          connected(room_a, corridor, door_a).
+          connected(corridor, room_a, door_a).
+          connected(room_b, corridor, door_b).
+          connected(corridor, room_b, door_b).
+          connected(room_c, corridor, door_c).
+          connected(corridor, room_c, door_c).
+          connected(room_d, corridor, door_d).
+          connected(corridor, room_d, door_d).
+          connected(room_e, corridor, door_e).
+          connected(corridor, room_e, door_e).
+          connected(room_f, corridor, door_f).
+          connected(corridor, room_f, door_f).
+
+          agent(agv1).
+          agent(agv2).
+          agent(agv3).
+
+          resources(agent(agv1)).
+          resources(agent(agv2)).
+          resources(agent(agv3)).
+          ```
+
+          Consider the following description of the low-level aspect of the same problem.
+          Refine the same AGV scenario with door-level navigation. The high-level door identifier
+          must be preserved in the low-level model. Each room has one door. Initially all doors are
+          closed. Each AGV starts at the same low-level location as its high-level room.
+
+          Available low-level actions:
+          - ll_go_to_door(Agent, From, Door), duration [3, 6]
+          - ll_open_door(Agent, Door), duration [2, 5]
+          - ll_enter_room(Agent, Room, Door), duration [3, 6]
+
+          Generate the low-level knowledge base, initial and goal states, low-level actions, and
+          mappings from high-level go_to_room actions to suitable low-level action sequences. All
+          low-level predicates must be prefixed with ll_.
+          Can you integrate the previous high-level knowledge base with predicates needed for the
+          low-level knowledge base?
+
+      A:
+        role: 'assistant'
+        content: |
+          The low-level knowledge base keeps the high-level door facts and adds LL aliases for
+          room-to-door lookup. Door status and AGV low-level positions are not static, so they are
+          left for the initial and goal states rather than encoded here.
+          ```kb
+          room(room_a).
+          room(room_b).
+          room(room_c).
+          room(room_d).
+          room(room_e).
+          room(room_f).
+          room(corridor).
+
+          door(door_a, room_a, corridor).
+          door(door_b, room_b, corridor).
+          door(door_c, room_c, corridor).
+          door(door_d, room_d, corridor).
+          door(door_e, room_e, corridor).
+          door(door_f, room_f, corridor).
+
+          connected(room_a, corridor, door_a).
+          connected(corridor, room_a, door_a).
+          connected(room_b, corridor, door_b).
+          connected(corridor, room_b, door_b).
+          connected(room_c, corridor, door_c).
+          connected(corridor, room_c, door_c).
+          connected(room_d, corridor, door_d).
+          connected(corridor, room_d, door_d).
+          connected(room_e, corridor, door_e).
+          connected(corridor, room_e, door_e).
+          connected(room_f, corridor, door_f).
+          connected(corridor, room_f, door_f).
+
+          ll_room_door(room_a, door_a).
+          ll_room_door(room_b, door_b).
+          ll_room_door(room_c, door_c).
+          ll_room_door(room_d, door_d).
+          ll_room_door(room_e, door_e).
+          ll_room_door(room_f, door_f).
+
+          agent(agv1).
+          agent(agv2).
+          agent(agv3).
+
+          resources(agent(agv1)).
+          resources(agent(agv2)).
+          resources(agent(agv3)).
+          ```

@@ -1,0 +1,375 @@
+# Copyright © University of Trento and DLR 2025.
+# This software is proprietary to the University of Trento and DLR. Use is permitted solely within
+# the Horizon Europe project “INVERSE” (Grant Agreement ID: 101136067).
+# This license does not override any rights or obligations established in the Grant Agreement.
+# Redistribution or use outside the project is prohibited.
+
+entries:
+  convo:
+    ############################################################################
+    ###############################     0     ##################################
+    ############################################################################
+    0: 
+      Q:
+        role: 'user'
+        content: |
+          Can you describe your framework?
+      A:
+        role: 'assistant'
+        content: |
+          The framework is composed of the following parts:
+            - The list of available high-level and low-level actions, which are provided within the `actions` keyword;
+            - The list of available mappings, which are provided within the `mappings` keyword; A mapping takes a high-level action and divides it into a set of low-level actions. 
+            - A knowledge base describing general information, which is provided within the `KB` keyword;
+            - The initial state, which is provided within the `init` keyword;
+            - The goal state, which is provided within the `goal` keyword.
+
+          Please, answer with just what you are asked for. If you are asked to produce the general knowledge base, then you should not include the initial state or the goal state, nor actions or mappings.
+          If you are asked to produce the initial state, then you should not include the goal state, nor actions or mappings, etc.
+
+          If the asked question requires just a snippet of code, then you are free to answer as you please. 
+          In any other circumstance, you'll have to include the following sections:
+          
+          ```actions
+          ```
+
+          ```KB
+          ```
+
+          ```init
+          ```
+
+          ```goal
+          ```
+
+          ```ll_actions
+          ```
+
+          ```mappings
+          ```
+
+          Any or all of them may be empty, but still every section must be present.
+    
+    ############################################################################
+    ###############################     1     ##################################
+    ############################################################################
+    1: 
+      Q:
+        role: 'user'
+        content: |
+          How is your code divided?
+
+      A:
+        role: 'assistant'
+        content: |
+          The low-level knowledge base is composed of 5 parts:
+          - `init` section, which contains the initial state of the environment;
+          - `goal` section, which contains the final state of the environment;
+          - `KB` section, which contains all the information that is not modified by the actions;
+          - `ll_actions` section, which contains the description of the actions that can be performed 
+            by the agents, both at the high-level and at the low-level. 
+          - `mappings` section, which contains the description of how to divide high-level actions 
+            into low-level actions.
+          For example, the predicate `ll_arm_at(A)`, which states the position of the arm A, is 
+          a predicate that is modified by the actions and should be placed in the `init` section.
+          On the other hand, the predicate `ll_arm(A)`, which states that the agent A is an arm, is
+          a predicate that is not modified by the actions and should be placed in the `KB` section.
+
+
+    ############################################################################
+    ###############################     2     ##################################
+    ############################################################################
+    2:
+      Q: 
+        role: 'user'
+        content: | 
+          What are the syntactic differences between high-level and low-level predicates?
+
+      A:
+        role: 'assistant'
+        content: |
+          The low-level predicates must be prefixed with `ll_`. For example, `agent(A)` tells us
+          that A is an agent that can carry out actions, but `ll_arm(A)` specify the role played by 
+          A saying that it is a robotic arm.          
+
+
+    ############################################################################
+    ###############################     3     ##################################
+    ############################################################################
+    3:
+      Q: 
+        role: 'user'
+        content: |
+          What information should be placed in the `KB`? 
+
+      A:
+        role: 'assistant'
+        content: |
+          In the `KB` section, one should place all those pieces of information that are important 
+          for the execution of the actions, yet they are not modified by the same actions. 
+          For example, one could place the available positions inside the knowledge base so that the
+          planner knows which are the positions that can be used, but at the same time it uses other 
+          predicates to state whether they are free or being used. 
+          ```KB
+          :-discontiguous ll_arm/1.
+          :-discontiguous ll_wheeled/1.
+          ll_arm(a2).
+          ll_arm(a3).
+          ll_wheeled(a1).
+          ll_wheeled(a3).
+          ```
+          In this knowledge base, we are saying that there is one agent that has only wheels, one 
+          that has only a robotic arm, and one that has both. We are not saying anything about the 
+          position of the agents, which is something that can change in time and should be stated in
+          the initial state and modified by the actions. 
+
+    ############################################################################
+    ###############################     4     ##################################
+    ############################################################################
+    4:
+      Q:
+        role: 'user'
+        content: |
+          How are the initial and final state written?
+      A:
+        role: 'assistant'
+        content: |
+          The initial and final states should contain all those predicates that are used to describe 
+          the state of the environment and of the agents at the beginning and at the end. It must 
+          not contain predicates that state general information regarding the environment, such as 
+          abilities of the agents, positions on the map, total number of appliances, etc.
+          For example, the following initial state and knowledge base are correct as the former
+          contains predicates describing information destined to change and the latter contains 
+          predicates describing a static knowledge base. In this case, there are 3 robots: 
+          - a1, which is a robotic arm and is initially in position (1,2);
+          - a2, which is a wheeled robot and is initially in position (5,5);
+          - a3, which is both a robotic arm (whose initial position is (2,3)) and a wheeled robot 
+            (whose initial position is (7,7)).
+
+          ```init
+          init_state([
+            ll_arm_at(a1, 1, 2), ll_arm_at(a3, 2, 3), ll_car_at(a3, 7, 7), ll_car_at(a2, 5, 5)
+          ]).
+          ```
+
+          ```KB
+          :-discontiguous ll_arm/1.
+          :-discontiguous ll_wheeled/1.
+          ll_arm(a1).
+          ll_arm(a3).
+          ll_wheeled(a2).
+          ll_wheeled(a3).
+          ```
+
+          Though the following initial state and knowledge base are not correct:  
+
+          ```init
+          init_state([
+            ll_arm_at(a1, 1, 2), ll_arm_at(a3, 2, 3), ll_car_at(a3, 7, 7), ll_car_at(a2, 5, 5), 
+            ll_wheeled(a2), ll_wheeled(a3)
+          ]).
+          ```
+
+          ```KB
+          :-discontiguous ll_arm/1.
+          ll_arm(a2).
+          ll_arm(a3).
+          ```
+
+          As the information regarding the fact that agents have certain properties should be stated
+          in the `KB` section since the properties remain the same in time.
+
+
+    ############################################################################
+    ###############################     5     ##################################
+    ############################################################################
+    5:
+      Q:
+        role: 'user'
+        content: |
+          What is considered to be a resource?
+      A:
+        role: 'assistant'
+        content: |
+          The resources are supplies that the planner can use in order to achieve the goal. For 
+          instance, arms are considered resources, as they can be used to perform actions and the 
+          planner can assign them. 
+          
+
+    ############################################################################
+    ###############################     6     ##################################
+    ############################################################################
+    6:
+      Q: 
+        role: 'user'
+        content: | 
+          How do you describe the structure of an action?
+
+      A:
+        role: 'assistant'
+        content: |
+          In our knowledge base, high-level actions are represented as one durative action.
+          Our knowledge base is composed of predicates to describe the states, and Prolog rules that describe the actions leveraging the following structure:
+          ```prolog
+          hl_d_action(
+            Name(Argument1, Argument2, ...), 
+            PreconditionsAtStart, 
+            PreconditionsAtEnd, 
+            PreconditionsOverall, 
+            EffectsAtStart,
+            EffectsAtEnd,
+            Duration
+          )
+          ```
+          The variable Name defines the name of the action and its argument, e.g., for the action corresponding to the gripping of an agent on a block, we use Name=grip(Agent,Block).
+          The fields `PreconditionsAtStart`, `PreconditionsAtEnd`, and `PreconditionsOverall`
+          capture temporal constraints; `EffectsAtStart` and `EffectsAtEnd` capture temporal updates;
+          `Duration` is expressed as `[Min, Max]`.
+          Effects use `add(P(...))` and `del(P(...))`, and negative checks in preconditions can be
+          expressed as `neg(P(...))`.
+          Similarly, the low-level action is a durative action with the same fields: 
+          ```prolog
+          ll_d_action(
+            Name(Argument1, Argument2, ...), 
+            PreconditionsAtStart, 
+            PreconditionsAtEnd, 
+            PreconditionsOverall, 
+            EffectsAtStart,
+            EffectsAtEnd,
+            Duration
+          )
+          ```
+          There are no snap actions. 
+
+
+    ############################################################################
+    ###############################     7     ##################################
+    ############################################################################
+    7:
+      Q:
+        role: 'user'
+        content: |
+          Given a high-level action, how do you divide it into low-level actions, i.e., how do you 
+          find a mapping for the high-level action? 
+
+      A:
+        role: 'assistant'
+        content: |
+          First of all, since we are talking about temporal planning, the actions have durations and we are going to 
+          create macro-actions for each high-level durative action.
+          The general structure of a high-level action to low-level actions is the following Prolog predicate:
+          ```
+          mapping(high_level_action(args),
+            [
+              low_level_action_1(args_ll_a1_s), 
+              low_level_action_2(args_ll_a2_e), 
+              low_level_action_3(args_ll_a2_e), 
+              ...
+            ]
+          ).
+          ```
+
+    ############################################################################
+    ###############################     8     ##################################
+    ############################################################################
+    8:
+      Q:
+        role: 'user'
+        content: |
+          Is it possible to use high-level predicates inside low-level actions? 
+
+      A:
+        role: 'assistant'
+        content: |
+          The low-level action may use them as preconditions, but must not use high-level predicates
+          in the effects. 
+
+
+    ############################################################################
+    ###############################     9     ##################################
+    ############################################################################
+    9:
+      Q:
+        role: 'user'
+        content: |
+          How does the planner use `PreconditionsAtStart`, `PreconditionsAtEnd`, and
+          `PreconditionsOverall` in low-level actions?
+      A:
+        role: 'assistant'
+        content: |
+          The planner treats low-level durative actions exactly as temporal actions:
+          - `PreconditionsAtStart` are checked when the action starts;
+          - `PreconditionsOverall` must remain true during all execution;
+          - `PreconditionsAtEnd` are checked at completion before end effects are applied.
+
+          In practice, `PreconditionsAtEnd` are useful for destination/handshake checks, while
+          `PreconditionsOverall` are useful for safety constraints that must never be violated.
+
+          Example:
+          ```ll_actions
+          ll_d_action(
+            ll_move_robot(Robot, From, To),
+            [ll_wheeled(Robot), ll_at(Robot, From), From \= To],
+            [neg(ll_at(_, To))],
+            [ll_safe_mode(Robot)],
+            [del(ll_at(Robot, From))],
+            [add(ll_at(Robot, To))],
+            [3, 5]
+          ).
+          ```
+
+
+    ############################################################################
+    ###############################     10    ##################################
+    ############################################################################
+    10:
+      Q:
+        role: 'user'
+        content: |
+          What is the purpose of the full low-level framework and what must always be respected?
+      A:
+        role: 'assistant'
+        content: |
+          The low-level framework refines the high-level model into executable temporal primitives:
+          - preserved high-level `KB`, extended only with low-level capabilities/resources;
+          - preserved high-level `init` and `goal`, extended only with low-level state predicates;
+          - `ll_actions` with durative low-level operators;
+          - `mappings` that decompose each high-level action into low-level steps.
+
+          Always respect:
+          - high-level predicates, high-level state facts, and `hl_d_action` declarations must be
+            preserved exactly; do not remove, rename, simplify, or change their arity/duration/effects;
+          - low-level predicates must be prefixed with `ll_`;
+          - do not invent entities or constraints not supported by the scenario;
+          - keep predicate names and arities consistent across all sections;
+          - avoid high-level predicates in low-level effects;
+          - output `ll_actions` for low-level operators and never rewrite the high-level `actions`;
+          - output only the requested tags and code.
+
+
+    ############################################################################
+    ###############################     11    ##################################
+    ############################################################################
+    11:
+      Q:
+        role: 'user'
+        content: |
+          What makes a mapping reliable and usable by the planner?
+      A:
+        role: 'assistant'
+        content: |
+          A reliable mapping:
+          - references real high-level and low-level actions;
+          - preserves argument consistency;
+          - uses only executable step sequences;
+          - respects temporal envelopes (HL duration must enclose LL duration sum).
+
+          Example of a bad pattern to avoid:
+          ```mappings
+          mapping(move(Robot, From, To),
+            [
+              ll_move_robot(Robot, From, From)
+            ]
+          ).
+          ```
+          If `ll_move_robot` requires `From \= To`, this mapping is non-executable and must not be used.

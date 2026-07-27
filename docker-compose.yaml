@@ -1,0 +1,42 @@
+services:
+  frontend:
+    build:
+      dockerfile: Dockerfile.frontend
+      context: .
+    environment:
+      - HOST=0.0.0.0
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+    ports:
+      - "3000:3000"
+    restart: always
+    networks:
+      - app-network
+        # ipv4_address: 172.20.0.3
+    volumes:
+      - ./GUI/frontend:/app
+      - frontend_node_modules:/app/node_modules
+
+  backend:
+    build:
+      dockerfile: Dockerfile.backend
+      context: .
+    ports:
+      - "5000:5000"
+    restart: always
+    networks:
+      - app-network
+        # ipv4_address: 172.20.0.2
+    volumes:
+      - .:/app
+
+networks:
+  app-network:
+    driver: bridge
+    # ipam:
+    #   driver: default
+    #   config:
+    #     - subnet: 172.20.0.0/16
+
+volumes:
+  frontend_node_modules:

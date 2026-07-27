@@ -1,0 +1,91 @@
+# Copyright © University of Trento and DLR 2025.
+# This software is proprietary to the University of Trento and DLR. Use is permitted solely within
+# the Horizon Europe project “INVERSE” (Grant Agreement ID: 101136067).
+# This license does not override any rights or obligations established in the Grant Agreement.
+# Redistribution or use outside the project is prohibited.
+
+entries:
+  convo:
+    ############################################################################
+    ###############################     0     ##################################
+    ############################################################################
+    0:
+      Q:
+        role: 'user'
+        content: |
+          In this AGV scenario, three automated guided vehicles must move through a building composed
+          of rooms room_a, room_b, room_c, room_d, room_e, room_f, and a corridor. Each room is
+          connected to the corridor by a named door, and movement between rooms must therefore happen
+          through the corridor and through one door at a time.
+          Initially, agv1 is in room_a, agv2 is in room_b, and agv3 is in room_c. The goal is to
+          move agv1 to room_d, agv2 to room_e, and agv3 to room_f. The AGVs are initially available
+          and must be available at the end. The corridor and every door are initially free and must be
+          free at the end. Each AGV can execute a high-level go_to_room(Agent, From, To, Door) action
+          between locations connected by Door, with duration between 1 and 20 time units. The action
+          can only start if the AGV is available, the corridor is free, and Door is free. No other AGV
+          may occupy the target during the action.
+          Also the knowledge base extracted before is the following:
+          ```kb
+          room(room_a).
+          room(room_b).
+          room(room_c).
+          room(room_d).
+          room(room_e).
+          room(room_f).
+          room(corridor).
+
+          door(door_a, room_a, corridor).
+          door(door_b, room_b, corridor).
+          door(door_c, room_c, corridor).
+          door(door_d, room_d, corridor).
+          door(door_e, room_e, corridor).
+          door(door_f, room_f, corridor).
+
+          connected(room_a, corridor, door_a).
+          connected(corridor, room_a, door_a).
+          connected(room_b, corridor, door_b).
+          connected(corridor, room_b, door_b).
+          connected(room_c, corridor, door_c).
+          connected(corridor, room_c, door_c).
+          connected(room_d, corridor, door_d).
+          connected(corridor, room_d, door_d).
+          connected(room_e, corridor, door_e).
+          connected(corridor, room_e, door_e).
+          connected(room_f, corridor, door_f).
+          connected(corridor, room_f, door_f).
+
+          agent(agv1).
+          agent(agv2).
+          agent(agv3).
+
+          resources(agent(agv1)).
+          resources(agent(agv2)).
+          resources(agent(agv3)).
+          ```
+          Can you provide the initial and final states?
+
+      A:
+        role: 'assistant'
+        content: |
+          The initial and goal states contain the fluents that can change over time.
+          The rooms, doors, and connections stay in the static knowledge base, while at/2,
+          corridor_free, door_free/1, and available/1 describe the changing planning state.
+          ```init
+          init_state([
+            at(agv1, room_a), at(agv2, room_b), at(agv3, room_c),
+            corridor_free,
+            door_free(door_a), door_free(door_b), door_free(door_c),
+            door_free(door_d), door_free(door_e), door_free(door_f),
+            available(agv1), available(agv2), available(agv3)
+          ]).
+          ```
+
+          ```goal
+          goal_state([
+            at(agv1, room_d), at(agv2, room_e), at(agv3, room_f),
+            corridor_free,
+            door_free(door_a), door_free(door_b), door_free(door_c),
+            door_free(door_d), door_free(door_e), door_free(door_f),
+            available(agv1), available(agv2), available(agv3)
+          ]).
+          ```

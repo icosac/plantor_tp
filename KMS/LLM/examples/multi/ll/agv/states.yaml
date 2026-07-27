@@ -1,0 +1,127 @@
+# Copyright © University of Trento and DLR 2025.
+# This software is proprietary to the University of Trento and DLR. Use is permitted solely within
+# the Horizon Europe project “INVERSE” (Grant Agreement ID: 101136067).
+# This license does not override any rights or obligations established in the Grant Agreement.
+# Redistribution or use outside the project is prohibited.
+
+entries:
+  convo:
+    ############################################################################
+    ###############################     0     ##################################
+    ############################################################################
+    0:
+      Q:
+        role: 'user'
+        content: |
+          Given the knowledge base obtained from the low-level description:
+          ```kb
+          room(room_a).
+          room(room_b).
+          room(room_c).
+          room(room_d).
+          room(room_e).
+          room(room_f).
+          room(corridor).
+
+          door(door_a, room_a, corridor).
+          door(door_b, room_b, corridor).
+          door(door_c, room_c, corridor).
+          door(door_d, room_d, corridor).
+          door(door_e, room_e, corridor).
+          door(door_f, room_f, corridor).
+
+          connected(room_a, corridor, door_a).
+          connected(corridor, room_a, door_a).
+          connected(room_b, corridor, door_b).
+          connected(corridor, room_b, door_b).
+          connected(room_c, corridor, door_c).
+          connected(corridor, room_c, door_c).
+          connected(room_d, corridor, door_d).
+          connected(corridor, room_d, door_d).
+          connected(room_e, corridor, door_e).
+          connected(corridor, room_e, door_e).
+          connected(room_f, corridor, door_f).
+          connected(corridor, room_f, door_f).
+
+          ll_room_door(room_a, door_a).
+          ll_room_door(room_b, door_b).
+          ll_room_door(room_c, door_c).
+          ll_room_door(room_d, door_d).
+          ll_room_door(room_e, door_e).
+          ll_room_door(room_f, door_f).
+
+          agent(agv1).
+          agent(agv2).
+          agent(agv3).
+
+          resources(agent(agv1)).
+          resources(agent(agv2)).
+          resources(agent(agv3)).
+          ```
+
+          Given the initial and final states generated from the high-level description:
+          ```init
+          init_state([
+            at(agv1, room_a), at(agv2, room_b), at(agv3, room_c),
+            corridor_free,
+            available(agv1), available(agv2), available(agv3)
+          ]).
+          ```
+          ```goal
+          goal_state([
+            at(agv1, room_d), at(agv2, room_e), at(agv3, room_f),
+            corridor_free,
+            available(agv1), available(agv2), available(agv3)
+          ]).
+          ```
+
+          Consider the following description of the low-level aspect of the same problem.
+          Refine the same AGV scenario with door-level navigation. The high-level door identifier
+          must be preserved in the low-level model. Each room has one door. Initially all doors are
+          closed. Each AGV starts at the same low-level location as its high-level room.
+
+          Available low-level actions:
+          - ll_go_to_door(Agent, From, Door), duration [3, 6]
+          - ll_open_door(Agent, Door), duration [2, 5]
+          - ll_enter_room(Agent, Room, Door), duration [3, 6]
+
+          Generate the low-level knowledge base, initial and goal states, low-level actions, and
+          mappings from high-level go_to_room actions to suitable low-level action sequences. All
+          low-level predicates must be prefixed with ll_.
+          Can you update the initial and final states from the previous knowledge base to reflect
+          these changes?
+
+      A:
+        role: 'assistant'
+        content: |
+          The low-level states preserve the high-level fluents and add door and AGV
+          low-level location fluents. Door status is initialized as closed, while the
+          final door status is irrelevant and can therefore be left anonymous. High-level
+          door_free/1 remains a high-level resource fluent and is kept in the HL part of the states.
+          ```init
+          init_state([
+            at(agv1, room_a), at(agv2, room_b), at(agv3, room_c),
+            corridor_free,
+            door_free(door_a), door_free(door_b), door_free(door_c),
+            door_free(door_d), door_free(door_e), door_free(door_f),
+            available(agv1), available(agv2), available(agv3),
+            ll_door_status(door_a, closed), ll_door_status(door_b, closed),
+            ll_door_status(door_c, closed), ll_door_status(door_d, closed),
+            ll_door_status(door_e, closed), ll_door_status(door_f, closed),
+            ll_at(agv1, room_a), ll_at(agv2, room_b), ll_at(agv3, room_c)
+          ]).
+          ```
+
+          ```goal
+          goal_state([
+            at(agv1, room_d), at(agv2, room_e), at(agv3, room_f),
+            corridor_free,
+            door_free(door_a), door_free(door_b), door_free(door_c),
+            door_free(door_d), door_free(door_e), door_free(door_f),
+            available(agv1), available(agv2), available(agv3),
+            ll_door_status(door_a, _), ll_door_status(door_b, _),
+            ll_door_status(door_c, _), ll_door_status(door_d, _),
+            ll_door_status(door_e, _), ll_door_status(door_f, _),
+            ll_at(agv1, room_d), ll_at(agv2, room_e), ll_at(agv3, room_f)
+          ]).
+          ```
