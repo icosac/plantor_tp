@@ -56,6 +56,8 @@ Regenerate the aggregate KB-generation metrics used for Table D.8:
 python3 scripts/kb_generation_metrics.py
 ```
 
+**NOTICE**: before running the script, the user must manually update `HL_CORRECTIONS` and `LL_CORRECTIONS` in the script to reflect the final corrected Prolog files in `exp/kb_generation`. The script uses these matrices to compute the logical correction counts.
+
 Useful variants:
 
 ```shell

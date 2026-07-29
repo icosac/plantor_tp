@@ -22,7 +22,6 @@ COPY ./KMS/LLM/requirements-pip.txt ./KMS/LLM/requirements-pip.txt
 COPY ./KMS/LLM/LLMAzureOpenAI/requirements-pip.txt ./KMS/LLM/LLMAzureOpenAI/requirements-pip.txt
 COPY ./KMS/LLM/LLMOpenAI/requirements-pip.txt ./KMS/LLM/LLMOpenAI/requirements-pip.txt
 COPY ./requirements-pip.txt ./requirements-pip.txt
-COPY ./MP/requirements-pip.txt ./MP/requirements-pip.txt
 
 # Install Python dependencies
 RUN python3 -m pip install --no-cache-dir loguru
